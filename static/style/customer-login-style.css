@@ -1,16 +1,15 @@
-/* FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/customer-login-style.css */
-
 /* Add the styling you just removed here */
 
 #content {
-  display: flex-column;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh; /* Adjust as needed */
   font-family: Arial, Helvetica, sans-serif;
 }
 
-#title{
+#title {
   text-align: center;
   font-size: 50px;
   font-weight: bold;
