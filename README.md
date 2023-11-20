@@ -10,9 +10,11 @@ This project is a Flask-based web application that implements user authenticatio
    ```bash
    pip install -r requirements.txt
    ```
-3. Set up the database by running apache server in xampp:
+3. Set up the database by running apache server in xampp and open phpmyadmin:
 
-4. Start the application by running the python file: web-script.py
+4. import the database using the ```booking.sql``` file 
+
+5. Start the application by running the python file: web-script.py
 
 
 ## Usage
