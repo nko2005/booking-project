@@ -1,7 +1,7 @@
 
-# Flask Login Project
+# Flask Booking Project
 
-This project is a Flask-based web application that implements user authentication and login functionality.
+This project is a Flask-based web application that implements user authentication and login functionality to create a larger and more complicated flight booking system.
 
 ## Installation
 
@@ -11,9 +11,7 @@ This project is a Flask-based web application that implements user authenticatio
    pip install -r requirements.txt
    ```
 3. Set up the database by running apache server in xampp:
-   ```bash
-   python manage.py db upgrade
-   ```
+
 4. Start the application by running the python file: web-script.py
 
 
