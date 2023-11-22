@@ -14,14 +14,15 @@ This project is a Flask-based web application that implements user authenticatio
 
 4. import the database using the ```booking.sql``` file 
 
-5. Start the application by running the python file: web-script.py
+5. Start the application by running the python file: ```web-script.py```
 
 
 ## Usage
 
 1. Open your web browser and navigate to `http://localhost:5000/login`.
 2. Register a new user account or log in with an existing account.
-3. Explore the different features of the application.
+3. You can test the login using username "staff1" and password "password1"
+   for now it only checks for airline staff 
 
 ## Dependencies
 
