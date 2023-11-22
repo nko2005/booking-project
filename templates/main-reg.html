@@ -1,0 +1,22 @@
+<!-- FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/templates/register.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <h1>Register</h1>
+    <form action="/register" method="POST">
+        {{ form.csrf_token }}
+        <label for="role">Select Role:</label>
+        <select name="role" id="role">
+            <option value="customer">Customer</option>
+            <option value="airline_staff">Airline Staff</option>
+            <option value="booking_agent">Booking Agent</option>
+        </select>
+        <br><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

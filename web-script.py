@@ -7,9 +7,11 @@ This script is a Flask web application that handles user login functionality.
 #import necessary libraries
 from flask import Flask, render_template, request, url_for, redirect, session
 import mysql.connector
-from wtforms import Form, StringField, PasswordField, validators
+from wtforms import Form, RadioField, StringField, PasswordField, SubmitField, validators
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
+from wtforms.validators import DataRequired
 
 # Initialize the app from Flask
 app = Flask(__name__)
@@ -21,10 +23,13 @@ conn = mysql.connector.connect(host='localhost',
                                database='booking')
 # Define a form for login
 class LoginForm(Form):
-    username = StringField('Username', [validators.Length(min=4, max=25)])
+    username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
+
+    email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
+    
     password = PasswordField('Password', [validators.InputRequired()])
-    def hash_password(self):
-        self.password.data = generate_password_hash(self.password.data)
+  
+    #Hashes the password entered by the user. This is done before querying the database to check if the user exists.
     def check_password(self,hashedpassword):
         return check_password_hash(hashedpassword, self.password.data)  
 #Define a route to login function
@@ -43,16 +48,74 @@ def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT username,password FROM airline_staff WHERE username = %s", (form.username.data,))
+        cursor.execute("(SELECT username,password FROM airline_staff WHERE username = %s) UNION (SELECT email,password FROM customer WHERE email = %s) UNION (SELECT booking_agent_id,password FROM booking_agent WHERE booking_agent_id = %s) ", (form.username.data, form.email.data, form.username.data))
         user = cursor.fetchone()
-        print(user)
-         # Check if the user exists and the password is correct
-        if user and form.check_password(user['password']):
+        print(user)  # Print the user information
+        # Check if the user exists and the password is correct
+        if user and ('username' in user or 'email' in user) and form.check_password(user['password']):
             return "Logged in successfully!"
         else:
             return "Invalid username or password."
     return render_template('customer-login.html', form=form)
+
+
+class RoleForm(Form):
+    role = RadioField('Role', choices=[('customer','Customer'), ('airline_staff','Airline Staff'), ('booking_agent','Booking Agent')], validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RoleForm()
+    if form.validate_on_submit():
+        if form.role.data == 'customer':
+            return redirect(url_for('register_customer'))
+        elif form.role.data == 'airline_staff':
+            return redirect(url_for('register_airline_staff'))
+        elif form.role.data == 'booking_agent':
+            return redirect(url_for('register_booking_agent'))
+    return render_template('register.html', form=form)
+
+class CustomerRegisterForm(Form):
+    first_name = StringField('First Name', [validators.Length(min=1, max=25)])
+    last_name = StringField('Last Name', [validators.Length(min=1, max=25)])
+
+    email = StringField('Email', [validators.Email(message='Invalid email'), validators.Optional()])
+
+    password = PasswordField('Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+    city_name = StringField('City Name', [validators.Length(min=1, max=25), validators.Optional()])
+    street_name = StringField('Street Name', [validators.Length(min=1, max=25), validators.Optional()])
+    building_name = StringField('Building Name', [validators.Length(min=1, max=25), validators.Optional()])
+
+    building_number = StringField('Building Number', [validators.Length(min=1, max=25), validators.Optional()])
+
+    passport_expiry = StringField('Passport Expiry', [validators.Length(min=1, max=25), validators.InputRequired()])
+    phone_number = StringField('Phone Number', [validators.Length(min=1, max=25), validators.Optional()])
+
+  
+    def hash_password(password):
+        """
+        Hashes the given password using the generate_password_hash function from werkzeug.security.
+
+        :param password: The password to be hashed.
+        :return: The hashed password.
+        """
+        return generate_password_hash(password)
+
+
+@app.route('/register_customer', methods=['GET', 'POST'])
+def register_customer():
     
+
+    return render_template('register-customer.html', form=form)
+
 
 # Set the secret key for the app
 app.secret_key = '123456'
