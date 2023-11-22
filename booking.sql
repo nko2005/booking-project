@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 20, 2023 at 02:37 PM
+-- Generation Time: Nov 22, 2023 at 11:42 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -45,20 +45,21 @@ INSERT INTO `airline` (`Airline_name`) VALUES
 --
 
 CREATE TABLE `airline_staff` (
+  `id` int(11) NOT NULL,
   `Airline_name` varchar(20) NOT NULL,
   `Username` varchar(15) NOT NULL,
   `first_name` varchar(20) NOT NULL,
   `last_name` varchar(20) NOT NULL,
-  `password` varchar(25) NOT NULL,
-  `Dob` varchar(15) DEFAULT NULL
+  `password` varchar(255) NOT NULL,
+  `Dob` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `airline_staff`
 --
 
-INSERT INTO `airline_staff` (`Airline_name`, `Username`, `first_name`, `last_name`, `password`, `Dob`) VALUES
-('Shanghai Global', 'Weaver432', 'Gregory', 'Weaver', 'Requiem115', '1970/03/23');
+INSERT INTO `airline_staff` (`id`, `Airline_name`, `Username`, `first_name`, `last_name`, `password`, `Dob`) VALUES
+(1, 'Shanghai Global', 'staff1', 'John', 'Doe', 'scrypt:32768:8:1$1dZCs1FKpfgdFlFu$4e34b3d2eda8b7118c7fbe7eb77573f690217dfcfa777916d4fc2cb528c054dbc80bcf44d583abdf9ac7c6be907edbdec0e82f062f9422453be097082632e8b9', '1980-01-01');
 
 -- --------------------------------------------------------
 
@@ -76,8 +77,6 @@ CREATE TABLE `airplane` (
 --
 
 INSERT INTO `airplane` (`Airplane_ID`, `Airline_name`) VALUES
-('223454', 'Shanghai Global'),
-('344788', 'Shanghai Global'),
 ('454033', 'Shanghai Global');
 
 -- --------------------------------------------------------
@@ -88,7 +87,7 @@ INSERT INTO `airplane` (`Airplane_ID`, `Airline_name`) VALUES
 
 CREATE TABLE `airport` (
   `Airport_name` varchar(20) NOT NULL,
-  `City` varchar(15) DEFAULT NULL
+  `City` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -97,8 +96,7 @@ CREATE TABLE `airport` (
 
 INSERT INTO `airport` (`Airport_name`, `City`) VALUES
 ('JFK', 'New York'),
-('PVG', 'Shanghai'),
-('SDY', 'Sydney');
+('PVG', 'Shanghai');
 
 -- --------------------------------------------------------
 
@@ -107,18 +105,19 @@ INSERT INTO `airport` (`Airport_name`, `City`) VALUES
 --
 
 CREATE TABLE `booking_agent` (
+  `id` int(11) NOT NULL,
   `Booking_agent_ID` varchar(8) NOT NULL,
   `Airline_Name` varchar(20) DEFAULT NULL,
   `Email` varchar(25) NOT NULL,
-  `Password` varchar(25) DEFAULT NULL
+  `Password` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `booking_agent`
 --
 
-INSERT INTO `booking_agent` (`Booking_agent_ID`, `Airline_Name`, `Email`, `Password`) VALUES
-('115', 'Shanghai Global', 'JasonHudson@gmail.com', '234442');
+INSERT INTO `booking_agent` (`id`, `Booking_agent_ID`, `Airline_Name`, `Email`, `Password`) VALUES
+(1, 'agent1', 'Shanghai Global', 'agent1@gmail.com', 'scrypt:32768:8:1$TJF9NVJVTJGDwTP2$ecff7988e93d7d6d891515e7ca3b3035dd95257cd016b16906bc167ab467ad976c7ae1e2ea24dd2b6937f36055ad90427fa7766517fbbe57b726cf60a698b212');
 
 -- --------------------------------------------------------
 
@@ -127,14 +126,16 @@ INSERT INTO `booking_agent` (`Booking_agent_ID`, `Airline_Name`, `Email`, `Passw
 --
 
 CREATE TABLE `customer` (
-  `first_name` varchar(20) DEFAULT NULL,
-  `last_name` varchar(20) DEFAULT NULL,
+  `id` int(11) NOT NULL,
+  `first_name` varchar(20) NOT NULL,
+  `last_name` varchar(20) NOT NULL,
   `Email` varchar(25) NOT NULL,
+  `Password` varchar(255) NOT NULL,
   `Building` varchar(25) DEFAULT NULL,
   `Building_no` varchar(7) DEFAULT NULL,
   `Street` varchar(25) DEFAULT NULL,
   `City` varchar(25) DEFAULT NULL,
-  `Passport_expiration` varchar(12) NOT NULL,
+  `Passport_expiration` date NOT NULL,
   `phone_number` varchar(25) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -142,9 +143,8 @@ CREATE TABLE `customer` (
 -- Dumping data for table `customer`
 --
 
-INSERT INTO `customer` (`first_name`, `last_name`, `Email`, `Building`, `Building_no`, `Street`, `City`, `Passport_expiration`, `phone_number`) VALUES
-('Alex', 'Mason', 'AlexMason@gmail.com', 'International Continental', '2', 'West Street', 'Washington', '2033', '+6113505421'),
-('Vicktor', 'Reznov', 'JohnTrent@gmail.com', 'Madison Towers', '5', 'Madison Street', 'Washington', '2025', '+6450405986');
+INSERT INTO `customer` (`id`, `first_name`, `last_name`, `Email`, `Password`, `Building`, `Building_no`, `Street`, `City`, `Passport_expiration`, `phone_number`) VALUES
+(1, 'John', 'Trent', 'JohnTrent@gmail.com', 'hashed_password3', 'Building 1', '1', 'Street 1', 'City 1', '2023-01-01', '1234567890');
 
 -- --------------------------------------------------------
 
@@ -162,8 +162,8 @@ CREATE TABLE `flight` (
   `Arrival_hr` decimal(2,0) DEFAULT NULL CHECK (`Arrival_hr` >= 0 and `Arrival_hr` < 24),
   `Arrival_min` decimal(2,0) DEFAULT NULL CHECK (`Arrival_min` >= 0 and `Arrival_min` < 60),
   `Airplane_ID` varchar(15) DEFAULT NULL,
-  `Price` varchar(15) DEFAULT NULL,
-  `Status` varchar(15) DEFAULT NULL
+  `Price` decimal(10,2) DEFAULT NULL,
+  `Status` enum('Upcoming','Cancelled','Delayed','in-progress') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -171,10 +171,7 @@ CREATE TABLE `flight` (
 --
 
 INSERT INTO `flight` (`Flight_number`, `Airline_name`, `Arrival_Airport`, `Departure_Airport`, `Departure_hr`, `Departure_min`, `Arrival_hr`, `Arrival_min`, `Airplane_ID`, `Price`, `Status`) VALUES
-('1333', 'Shanghai Global', 'SDY', 'PVG', 11, 30, 7, 30, '223454', '200', 'Upcoming'),
-('2178', 'Shanghai Global', 'JFK', 'PVG', 15, 30, 12, 30, '454033', '500', 'In-progress'),
-('3443', 'Shanghai Global', 'JFK', 'PVG', 19, 30, 2, 30, '454033', '500', 'Upcoming'),
-('4343', 'Shanghai Global', 'PVG', 'JFK', 17, 30, 4, 30, '344788', '500', 'Delayed');
+('3443', 'Shanghai Global', 'JFK', 'PVG', 19, 30, 2, 30, '454033', 500.00, 'Upcoming');
 
 -- --------------------------------------------------------
 
@@ -183,9 +180,10 @@ INSERT INTO `flight` (`Flight_number`, `Airline_name`, `Arrival_Airport`, `Depar
 --
 
 CREATE TABLE `ticket` (
+  `id` int(11) NOT NULL,
   `Ticket_ID` varchar(8) NOT NULL,
-  `Flight_Number` varchar(8) DEFAULT NULL,
-  `Customer_Email` varchar(25) DEFAULT NULL,
+  `Flight_Number` varchar(8) NOT NULL,
+  `Customer_Email` varchar(25) NOT NULL,
   `Booking_Agent_Email` varchar(25) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -193,10 +191,8 @@ CREATE TABLE `ticket` (
 -- Dumping data for table `ticket`
 --
 
-INSERT INTO `ticket` (`Ticket_ID`, `Flight_Number`, `Customer_Email`, `Booking_Agent_Email`) VALUES
-('12334', '2178', 'JohnTrent@gmail.com', 'JasonHudson@gmail.com'),
-('32033', '3443', 'JohnTrent@gmail.com', NULL),
-('34355', '4343', 'AlexMason@gmail.com', 'JasonHudson@gmail.com');
+INSERT INTO `ticket` (`id`, `Ticket_ID`, `Flight_Number`, `Customer_Email`, `Booking_Agent_Email`) VALUES
+(1, '32033', '3443', 'JohnTrent@gmail.com', NULL);
 
 --
 -- Indexes for dumped tables
@@ -212,7 +208,8 @@ ALTER TABLE `airline`
 -- Indexes for table `airline_staff`
 --
 ALTER TABLE `airline_staff`
-  ADD PRIMARY KEY (`Username`),
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `Username` (`Username`),
   ADD KEY `Airline_name` (`Airline_name`);
 
 --
@@ -232,14 +229,16 @@ ALTER TABLE `airport`
 -- Indexes for table `booking_agent`
 --
 ALTER TABLE `booking_agent`
-  ADD PRIMARY KEY (`Email`),
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `Email` (`Email`),
   ADD KEY `Airline_Name` (`Airline_Name`);
 
 --
 -- Indexes for table `customer`
 --
 ALTER TABLE `customer`
-  ADD PRIMARY KEY (`Email`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `Email` (`Email`);
 
 --
 -- Indexes for table `flight`
@@ -255,10 +254,39 @@ ALTER TABLE `flight`
 -- Indexes for table `ticket`
 --
 ALTER TABLE `ticket`
-  ADD PRIMARY KEY (`Ticket_ID`),
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `Ticket_ID` (`Ticket_ID`),
   ADD KEY `Customer_Email` (`Customer_Email`),
   ADD KEY `Booking_Agent_Email` (`Booking_Agent_Email`),
   ADD KEY `Flight_Number` (`Flight_Number`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `airline_staff`
+--
+ALTER TABLE `airline_staff`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `booking_agent`
+--
+ALTER TABLE `booking_agent`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `customer`
+--
+ALTER TABLE `customer`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `ticket`
+--
+ALTER TABLE `ticket`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables

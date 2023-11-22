@@ -21,6 +21,10 @@
 
 # Created by https://www.gitignore.io/api/vim,osx,node,windows
 # Edit at https://www.gitignore.io/?templates=vim,osx,node,windows
+##db stuff##
+**Booking database inserts.sql
+**booking_structure.sql
+**new_booking_inserts.sql
 
 ##windows virtual environment##
 **venv

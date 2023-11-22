@@ -5,6 +5,13 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/customer-login-style.css')  }}">
 </head>
 <body>
+    <div id="navbar" align="left">
+        <div id = "navelements">
+         <a href="#">Home</a>
+         <a href="#">About</a>
+         <a href="#">Contact</a>
+        </div>
+    </div>
     <div id="title" align="center">
        Booktrip Century Global 
     </div>
@@ -12,12 +19,12 @@
     <form method="POST" style="text-align: center;">
         <input type="text" name="username" placeholder="Username">
         {% for error in form.username.errors %}
-            <span style="color: red; font-family: Arial, Helvetica, sans-serif;">{{ error }}</span>
+        <span class="error">{{ error }}</span>
         {% endfor %}
        
         <input type="password" name="password" placeholder="Password">
         {% for error in form.password.errors %}
-            <span style="color: red; font-family: Arial, Helvetica, sans-serif; margin: 5px;">{{ error }}</span>
+            <span class="error">{{ error }}</span>
         {% endfor %}
         <input type="submit" value="Login">
     </form>

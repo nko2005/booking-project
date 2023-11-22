@@ -25,9 +25,8 @@ class LoginForm(Form):
     password = PasswordField('Password', [validators.InputRequired()])
     def hash_password(self):
         self.password.data = generate_password_hash(self.password.data)
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
+    def check_password(self,hashedpassword):
+        return check_password_hash(hashedpassword, self.password.data)  
 #Define a route to login function
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -44,10 +43,11 @@ def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT username FROM airline_staff WHERE username = %s", (form.username.data,))
+        cursor.execute("SELECT username,password FROM airline_staff WHERE username = %s", (form.username.data,))
         user = cursor.fetchone()
+        print(user)
          # Check if the user exists and the password is correct
-        if user:
+        if user and form.check_password(user['password']):
             return "Logged in successfully!"
         else:
             return "Invalid username or password."
@@ -60,4 +60,4 @@ app.secret_key = '123456'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-	app.run('127.0.0.1', 5000, debug = True,use_reloader=False)
+    app.run('127.0.0.1', 5000, debug=True, use_reloader=False)
