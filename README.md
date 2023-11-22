@@ -6,7 +6,20 @@ This project is a Flask-based web application that implements user authenticatio
 ## Installation
 
 1. Clone the repository.
-2. Install the required dependencies by running the following command:
+2. Create a virtual environment by running the following command:
+   ```bash
+   python -m venv venv
+   ```
+3. Activate the virtual environment:
+   - For Windows:
+     ```bash
+     venv\Scripts\activate
+     ```
+   - For macOS/Linux:
+     ```bash
+     source venv/bin/activate
+     ```
+4. Install the required dependencies by running the following command:
    ```bash
    pip install -r requirements.txt
    ```
