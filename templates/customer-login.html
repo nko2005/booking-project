@@ -18,6 +18,7 @@
     </div>
     <div id="content" align="center">
     <form method="POST" style="text-align: center;">
+        
         <input type="text" name="username" placeholder="Username (optional)">
         {% for error in form.username.errors %}
         <span class="error">{{ error }}</span>

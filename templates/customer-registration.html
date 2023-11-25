@@ -1,86 +1,83 @@
+<!-- FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/templates/customer-registration.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Customer Registration Page</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/customer-reg-style.css')  }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset = "UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/customer-reg-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 </head>
 
-<div id="navbar" align="left">
-        <div id = "navelements">
-         <a href="#">Home</a>
-         <a href="#">About</a>
-         <a href="#">Contact</a>
+<body>
+    <div id="navbar" align="left">
+        <div id="nav-elements">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
         </div>
     </div>
     <div id="title" align="center">
-       Customer Registration
+        Customer Registration
     </div>
 
-    <div id = "content" align = "center">
-        <div id="content" align="center">
-            <form method="POST" style="text-align: center;">
+    <div id="content" align="center">
+        <form method="POST" style="text-align: center;">
+           
+            <input type="text" name="first_name" placeholder="First Name">
+            {% for error in form.first_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="text" name="First Name" placeholder="First Name">
-                {% for error in form.username.errors %}
-                <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="text" name="last_name" placeholder="Last Name">
+            {% for error in form.last_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="text" name="Last Name" placeholder="Last Name">
-                {% for error in form.username.errors %}
-                <span class="error">{{ error }}</span>
-                {% endfor %}
-        
-                <input type="text" name="Email" placeholder="Email">
-                {% for error in form.email.errors %}
-                <span class="error">{{ error }}</span>
-                {% endfor %}
-                
-                <input type="password" name="Password" placeholder="Password">
-                {% for error in form.password.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="text" name="email" placeholder="Email">
+            {% for error in form.email.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="password" name="Confirm Password" placeholder="Confirm Password">
-                {% for error in form.confirm_password.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="password" name="password" placeholder="Password">
+            {% for error in form.password.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="text" name="City Name" placeholder="City">
-                {% for error in form.city_name.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="password" name="confirm_password" placeholder="Confirm Password">
+            {% for error in form.confirm_password.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="text" name="Street Name" placeholder="Street">
-                {% for error in form.street_name.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="text" name="city_name" placeholder="City">
+            {% for error in form.city_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="text" name="Building Number" placeholder="Building Number">
-                {% for error in form.building_number.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="text" name="street_name" placeholder="Street">
+            {% for error in form.street_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <input type="text" name="Phone Number" placeholder="Phone Number">
-                {% for error in form.phone_number.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="text" name="building_number" placeholder="Building Number">
+            {% for error in form.building_number.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <!--
-                                <input type="text" name="Passport Number" placeholder="Passport Number">
-                                {% for error in form.passport_number.errors %}
-                                    <span class="error">{{ error }}</span>
-                                {% endfor %}
-                -->
-                <input type="date" name="Passport Expiration Date" placeholder="Passport Expiration Date">
-                {% for error in form.passport_expiration_date.errors %}
-                    <span class="error">{{ error }}</span>
-                {% endfor %}
+            <input type="text" name="phone_number" placeholder="Phone Number">
+            {% for error in form.phone_number.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
+            Passport Expiry:
+            <input type="date" name="passport_expiry" placeholder="Passport Expiration Date">
+            {% for error in form.passport_expiry.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
 
-                <a href="{{ url_for('customer-dashboard') }}"><input type="button" value="Submit"></a>
-
-
-
-
+            <div id="input-container" align="center">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
     </div>
+</body>
+
+</html>

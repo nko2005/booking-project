@@ -8,7 +8,7 @@ This script is a Flask web application that handles user login functionality.
 from flask import Flask, render_template, request, url_for, redirect, session
 from flask_wtf import FlaskForm 
 import mysql.connector 
-from wtforms import Form, RadioField, StringField, PasswordField, SubmitField, validators 
+from wtforms import DateField, Form, RadioField, StringField, PasswordField, SubmitField, validators 
 from werkzeug.security import generate_password_hash 
 from werkzeug.security import check_password_hash 
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
@@ -74,6 +74,52 @@ def register():
             return redirect(url_for('register_booking_agent'))
     return render_template('main-reg.html', form=form)
 
+
+class AirlineStaffRegisterForm(Form):
+
+
+    username = StringField('Username', [validators.Length(min=4, max=25)],validators.InputRequired())
+
+    first_name = StringField('First Name', [validators.Length(min=1, max=25)])
+
+    last_name = StringField('Last Name', [validators.Length(min=1, max=25)])
+
+
+
+    password = PasswordField('Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+    confirm_password = PasswordField('Confirm Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ]) 
+
+@app.route('/register/airline_staff', methods=['GET', 'POST'])
+def register_airline_staff():
+    form = AirlineStaffRegisterForm()
+    if form.validate_on_submit():
+        # Add code to handle airline staff registration
+        return "Airline staff registered successfully!"
+    return render_template('airline-staff-reg.html', form=form)
+
+# @app.route('/register/booking_agent', methods=['GET', 'POST'])
+# def register_booking_agent():
+#     form = BookingAgentRegisterForm()
+#     if form.validate_on_submit():
+#         # Add code to handle booking agent registration
+#         return "Booking agent registered successfully!"
+#     return render_template('booking-agent-reg.html', form=form)
+
 class CustomerRegisterForm(Form):
     first_name = StringField('First Name', [validators.Length(min=1, max=25)])
     last_name = StringField('Last Name', [validators.Length(min=1, max=25)])
@@ -97,25 +143,16 @@ class CustomerRegisterForm(Form):
             message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
         )
     ])
-
-
-
-
-
-
-
-
-
     city_name = StringField('City Name', [validators.Length(min=1, max=25), validators.Optional()])
     street_name = StringField('Street Name', [validators.Length(min=1, max=25), validators.Optional()])
     building_name = StringField('Building Name', [validators.Length(min=1, max=25), validators.Optional()])
 
-    building_number = StringField('Building Number', [validators.Length(min=1, max=25), validators.Optional()])
+    building_number = StringField('Building Number', [validators.Length(min=1, max=50), validators.Optional()])
 
-    passport_expiry = StringField('Passport Expiry', [validators.Length(min=1, max=25), validators.InputRequired()])
+    passport_expiry = DateField('Passport Expiry', [validators.InputRequired()])
     phone_number = StringField('Phone Number', [validators.Length(min=1, max=25), validators.Optional()])
 
-  
+    @staticmethod
     def hash_password(password):
         """
         Hashes the given password using the generate_password_hash function from werkzeug.security.
@@ -126,18 +163,34 @@ class CustomerRegisterForm(Form):
         return generate_password_hash(password)
 
 
-@app.route('/register_customer', methods=['GET', 'POST'])
+@app.route('/register/register_customer', methods=['GET', 'POST'])
 def register_customer():
     form = CustomerRegisterForm(request.form)
-    if request.method == 'POST' and form.validate():
+    
+    if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO customer VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (form.email.data, form.hash_password(form.password.data), form.first_name.data, form.last_name.data, form.city_name.data, form.street_name.data, form.building_name.data, form.building_number.data))
+        cursor.execute(
+            "INSERT INTO customer(first_name, last_name, email, password, building, building_no, street, city, passport_expiration, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)",
+            (
+                form.first_name.data,
+                form.last_name.data,
+                form.email.data,
+                form.hash_password(form.password.data),
+                form.building_name.data if form.building_name.data is not None else None,
+                form.building_number.data if form.building_number.data is not None else None,
+                form.street_name.data if form.street_name.data is not None else None,
+                form.city_name.data if form.city_name.data is not None else None,
+                form.passport_expiry.data,
+                form.phone_number.data if form.phone_number.data is not None else None
+            )
+        )
         conn.commit()
         cursor.close()
+        print("entered")
         return "Customer registered successfully!"
 
 
-    return render_template('register-customer.html', form=form)
+    return render_template('customer-registration.html', form=form)
 
 #class AirlineStaffRegisterForm(Form):
 
@@ -151,4 +204,5 @@ app.secret_key = '123456'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
+    app.config['WTF_CSRF_ENABLED'] = True
     app.run('127.0.0.1', 5000, debug=True, use_reloader=False)

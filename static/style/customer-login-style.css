@@ -69,6 +69,7 @@ span.error {
   color: red;
   font-family: Arial, Helvetica, sans-serif;
   margin: 5px;
+  font-size: 12px;
 }
 #input-container{
   display: flex;

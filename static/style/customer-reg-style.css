@@ -26,8 +26,23 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 50vh; /* Adjust as needed */
+    height: 100vh; /* Adjust as needed */
     font-family: Arial, Helvetica, sans-serif;
+  }
+
+
+  @media screen and (max-width: 768px) {
+    #content {
+      height: 40vh; /* Adjust as needed */
+    }
+  }
+  #input-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;      
+    align-items: center;
+    width:auto
+  
   }
 
 
@@ -64,6 +79,19 @@ input[type="password"] {
   margin-right: auto;
 }
 
+input[type="submit"] {
+  width: 300px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+ 
+}
+
+
 input[type="button"] {
   width: 300px;
   padding: 10px;
@@ -79,5 +107,6 @@ span.error {
   color: red;
   font-family: Arial, Helvetica, sans-serif;
   margin: 5px;
+  font-size: 12px;
 }
   
