@@ -20,6 +20,19 @@
   
   
   }
+
+  #content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 50vh; /* Adjust as needed */
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+
+
+
   
   a {
     text-decoration: none;
@@ -37,4 +50,34 @@
     background-color: #f2f2f2;
     border-radius: 5px;
   }
+
+
+input[type="text"],
+input[type="password"] {
+  width: 80%; /* Adjust the width as needed */
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding-right: 10%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+input[type="button"] {
+  width: 300px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+ 
+}
+
+span.error {
+  color: red;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 5px;
+}
   

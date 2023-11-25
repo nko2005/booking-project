@@ -3,6 +3,7 @@
 <head>
     <title>Customer Registration Page</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/customer-reg-style.css')  }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset = "UTF-8">
 </head>
 
 <div id="navbar" align="left">
@@ -13,5 +14,73 @@
         </div>
     </div>
     <div id="title" align="center">
-       Booktrip Century Global 
+       Customer Registration
+    </div>
+
+    <div id = "content" align = "center">
+        <div id="content" align="center">
+            <form method="POST" style="text-align: center;">
+
+                <input type="text" name="First Name" placeholder="First Name">
+                {% for error in form.username.errors %}
+                <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <input type="text" name="Last Name" placeholder="Last Name">
+                {% for error in form.username.errors %}
+                <span class="error">{{ error }}</span>
+                {% endfor %}
+        
+                <input type="text" name="Email" placeholder="Email">
+                {% for error in form.email.errors %}
+                <span class="error">{{ error }}</span>
+                {% endfor %}
+                
+                <input type="password" name="Password" placeholder="Password">
+                {% for error in form.password.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <input type="password" name="Confirm Password" placeholder="Confirm Password">
+                {% for error in form.confirm_password.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <input type="text" name="City Name" placeholder="City">
+                {% for error in form.city_name.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <input type="text" name="Street Name" placeholder="Street">
+                {% for error in form.street_name.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <input type="text" name="Building Number" placeholder="Building Number">
+                {% for error in form.building_number.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <input type="text" name="Phone Number" placeholder="Phone Number">
+                {% for error in form.phone_number.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+                <!--
+                                <input type="text" name="Passport Number" placeholder="Passport Number">
+                                {% for error in form.passport_number.errors %}
+                                    <span class="error">{{ error }}</span>
+                                {% endfor %}
+                -->
+                <input type="date" name="Passport Expiration Date" placeholder="Passport Expiration Date">
+                {% for error in form.passport_expiration_date.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+
+
+                <a href="{{ url_for('customer-dashboard') }}"><input type="button" value="Submit"></a>
+
+
+
+
     </div>

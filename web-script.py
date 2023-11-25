@@ -89,6 +89,23 @@ class CustomerRegisterForm(Form):
         )
     ])
 
+    confirm_password = PasswordField('Confirm Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+
+
+
+
+
+
+
+
     city_name = StringField('City Name', [validators.Length(min=1, max=25), validators.Optional()])
     street_name = StringField('Street Name', [validators.Length(min=1, max=25), validators.Optional()])
     building_name = StringField('Building Name', [validators.Length(min=1, max=25), validators.Optional()])
@@ -108,13 +125,13 @@ class CustomerRegisterForm(Form):
         """
         return generate_password_hash(password)
 
-"""
+
 @app.route('/register_customer', methods=['GET', 'POST'])
 def register_customer():
     form = CustomerRegisterForm(request.form)
     if request.method == 'POST' and form.validate():
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO customer VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (form.email.dat  `1a, form.hash_password(form.password.data), form.first_name.data, form.last_name.data, form.city_name.data, form.street_name.data, form.building_name.data, form.building_number.data))
+        cursor.execute("INSERT INTO customer VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (form.email.data, form.hash_password(form.password.data), form.first_name.data, form.last_name.data, form.city_name.data, form.street_name.data, form.building_name.data, form.building_number.data))
         conn.commit()
         cursor.close()
         return "Customer registered successfully!"
@@ -122,7 +139,12 @@ def register_customer():
 
     return render_template('register-customer.html', form=form)
 
-"""
+#class AirlineStaffRegisterForm(Form):
+
+
+
+
+
 # Set the secret key for the app
 app.secret_key = '123456'
 #Run the app on localhost port 5000
