@@ -1,50 +1,41 @@
-/* FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/static/style/main-reg-style.css */
-
-/* Styles for the register page */
-
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
-}
-
-h1 {
+#title {
   text-align: center;
-  color: #333;
+  font-size: 30px;
+  font-weight: bold;
+  color: #007bff;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 form {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+    width: 300px;
+    padding: 20px;
+    background-color: #f2f2f2;
+    border-radius: 5px;
+  }
+  
+#content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 40vh; /* Adjust as needed */
+    font-family: Arial, Helvetica, sans-serif;
+  }
 
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
+  input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
 
-select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-input[type="submit"] {
-  width: 100%;
-  padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-input[type="submit"]:hover {
-  background-color: #45a049;
+  /* Media query for screens smaller than 600px */
+@media (max-width: 600px) {
+  
+    form {
+      width: 80%;
+    }
 }

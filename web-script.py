@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Oct 28 20:24:24 2023
+Created on Sat Oct 28 20:24:24 2023 by Nawaf
 
 This script is a Flask web application that handles user login functionality.
 """
 #import necessary libraries
 from flask import Flask, render_template, request, url_for, redirect, session
-import mysql.connector
-from wtforms import Form, RadioField, StringField, PasswordField, SubmitField, validators
-from werkzeug.security import generate_password_hash
-from werkzeug.security import check_password_hash
-from werkzeug.security import generate_password_hash
-from wtforms.validators import DataRequired
-
+from flask_wtf import FlaskForm 
+import mysql.connector 
+from wtforms import Form, RadioField, StringField, PasswordField, SubmitField, validators 
+from werkzeug.security import generate_password_hash 
+from werkzeug.security import check_password_hash 
+from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
 # Initialize the app from Flask
 app = Flask(__name__)
 
@@ -59,7 +58,7 @@ def login():
     return render_template('customer-login.html', form=form)
 
 
-class RoleForm(Form):
+class RoleForm(FlaskForm):
     role = RadioField('Role', choices=[('customer','Customer'), ('airline_staff','Airline Staff'), ('booking_agent','Booking Agent')], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
@@ -73,7 +72,7 @@ def register():
             return redirect(url_for('register_airline_staff'))
         elif form.role.data == 'booking_agent':
             return redirect(url_for('register_booking_agent'))
-    return render_template('register.html', form=form)
+    return render_template('main-reg.html', form=form)
 
 class CustomerRegisterForm(Form):
     first_name = StringField('First Name', [validators.Length(min=1, max=25)])
@@ -109,14 +108,21 @@ class CustomerRegisterForm(Form):
         """
         return generate_password_hash(password)
 
-
+"""
 @app.route('/register_customer', methods=['GET', 'POST'])
 def register_customer():
-    
+    form = CustomerRegisterForm(request.form)
+    if request.method == 'POST' and form.validate():
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO customer VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (form.email.dat  `1a, form.hash_password(form.password.data), form.first_name.data, form.last_name.data, form.city_name.data, form.street_name.data, form.building_name.data, form.building_number.data))
+        conn.commit()
+        cursor.close()
+        return "Customer registered successfully!"
+
 
     return render_template('register-customer.html', form=form)
 
-
+"""
 # Set the secret key for the app
 app.secret_key = '123456'
 #Run the app on localhost port 5000
