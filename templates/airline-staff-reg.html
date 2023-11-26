@@ -1,0 +1,67 @@
+<!-- FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/templates/customer-registration.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Registration Page</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/airline-reg-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+
+<body>
+    <div id="navbar" align="left">
+        <div id="nav-elements">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+    <div id="title" align="center">
+        Airline Staff Registration
+    </div>
+
+    <div id="content" align="center">
+        <form method="POST" style="text-align: center;">
+            <input type="text" name="airline_name" placeholder="First Name">
+            {% for error in form.airline_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+            <input type="text" name="first_name" placeholder="First Name">
+            {% for error in form.first_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <input type="text" name="last_name" placeholder="Last Name">
+            {% for error in form.last_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <input type="text" name="email" placeholder="Email">
+            {% for error in form.email.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <input type="password" name="password" placeholder="Password">
+            {% for error in form.password.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <input type="password" name="confirm_password" placeholder="Confirm Password">
+            {% for error in form.confirm_password.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            Date of birth:
+            <input type="date" name="dob" placeholder="Date of Birth">
+            {% for error in form.dob.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+
+
+            <div id="input-container" align="center">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

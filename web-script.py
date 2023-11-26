@@ -52,12 +52,19 @@ def login():
         user = cursor.fetchone()#receive from database
         print(user)  # Print the user information
         # Check if the user exists and the password is correct
+        conn.commit()
+        cursor.close()
         if user and ('username' in user or 'email' in user) and form.check_password(user['password']):
-            print('hahaha')
+            # If the user exists and the password is correct, store the username in a session
+            if form.username.data is not None:
+              session['username'] = form.username.data
+            else:
+                session['username'] = form.email.data
+            
             return "Logged in successfully!"
         else:
             return "Invalid username or password."
-    return render_template('customer-login.html', form=form)
+    return render_template('main-login.html', form=form)
 
 
 class RoleForm(FlaskForm):
@@ -78,13 +85,15 @@ def register():
 
 
 class AirlineStaffRegisterForm(Form):
-
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
 
     username = StringField('Username', [validators.Length(min=4, max=25),validators.InputRequired()])
 
     first_name = StringField('First Name', [validators.Length(min=1, max=25)])
 
     last_name = StringField('Last Name', [validators.Length(min=1, max=25)])
+
+    dob = DateField('Date of Birth', [validators.InputRequired()])
 
 
 
@@ -105,11 +114,45 @@ class AirlineStaffRegisterForm(Form):
             message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
         )
     ]) 
+    @staticmethod
+    def hash_password(self,password):
+        """
+        Hashes the given password using the generate_password_hash function from werkzeug.security.
+
+        :param password: The password to be hashed.
+        :return: The hashed password.
+        """
+        return generate_password_hash(password)
 
 @app.route('/register/airline_staff', methods=['GET', 'POST'])
 def register_airline_staff():
-    form = AirlineStaffRegisterForm()
-    if form.validate_on_submit():
+    form = AirlineStaffRegisterForm(request.form)
+    if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM airline_staff WHERE username = %s",
+            (form.username.data)
+        )
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return "User already exists"
+
+        else:
+
+            cursor.execute(
+                "INSERT INTO airline_staff(airline_name,username, first_name, last_name,password, DOB ) VALUES (%s, %s, %s, %s, %s, %s)",
+                (
+                    form.airline_name.data,
+                    form.username.data,
+                    form.first_name.data,
+                    form.last_name.data,
+                    form.hash_password(form.password.data),
+                    form.dob.data,
+                    
+                )
+            )
+        conn.commit()
+        cursor.close()
         # Add code to handle airline staff registration
         return "Airline staff registered successfully!"
     return render_template('airline-staff-reg.html', form=form)
@@ -194,7 +237,34 @@ def register_customer():
 
     return render_template('customer-registration.html', form=form)
 
-#class AirlineStaffRegisterForm(Form):
+class BookingAgentRegisterForm(Form):
+    
+    booking_agent_id = StringField('Booking Agent ID', [validators.Length(min=1, max=25),validators.InputRequired()])
+    email = StringField('Email', [validators.Email(message='Invalid email'), validators.Optional()])
+
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
+
+     password = PasswordField('Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+    confirm_password = PasswordField('Confirm Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+
 
 
 
