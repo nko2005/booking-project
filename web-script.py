@@ -13,7 +13,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash 
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
 # Initialize the app from Flask
-app = Flask(__name__)
+app = Flask(__name__)#forms for flask
 
 #Configure MySQL
 conn = mysql.connector.connect(host='localhost',
@@ -32,7 +32,7 @@ class LoginForm(Form):
     def check_password(self,hashedpassword):
         return check_password_hash(hashedpassword, self.password.data)  
 #Define a route to login function
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])#get: egt stuff; post: send stuff
 def login():
     """
     Handle the login functionality.
@@ -48,10 +48,12 @@ def login():
     if request.method == 'POST' and form.validate():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("(SELECT username,password FROM airline_staff WHERE username = %s) UNION (SELECT email,password FROM customer WHERE email = %s) UNION (SELECT booking_agent_id,password FROM booking_agent WHERE booking_agent_id = %s) ", (form.username.data, form.email.data, form.username.data))
-        user = cursor.fetchone()
+        #pur sql statements here
+        user = cursor.fetchone()#receive from database
         print(user)  # Print the user information
         # Check if the user exists and the password is correct
         if user and ('username' in user or 'email' in user) and form.check_password(user['password']):
+            print('hahaha')
             return "Logged in successfully!"
         else:
             return "Invalid username or password."
