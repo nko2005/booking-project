@@ -12,6 +12,7 @@ from wtforms import DateField, Form, RadioField, StringField, PasswordField, Sub
 from werkzeug.security import generate_password_hash 
 from werkzeug.security import check_password_hash 
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
+from datetime import datetime, timedelta
 # Initialize the app from Flask
 app = Flask(__name__)#forms for flask
 
@@ -69,21 +70,150 @@ def login():
                 session['username'] = form.email.data
                 
             session['user_type'] = user['user_type']
+            
             if user['user_type'] == 'airline_staff':
                 # Serve the airline staff dashboard
-                return "welcome airline staff!"
+                session["permission"] = "admin"
+                return redirect(url_for('airline_staff_dashboard'))
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
+                session["permission"] = "user"
                 return "welcome customer!"
 
             elif user['user_type'] == 'booking_agent':
             # Serve the booking agent dashboard
+                session["permission"] = "user"
                 return "welcome agent!"
             
         else:
             return "Invalid username or password."
     return render_template('main-login.html', form=form)
 
+
+@app.route('login/airline_staff_dashboard')
+def airline_staff_dashboard():
+    # Add your code here to handle the airline staff dashboard functionality
+    username = session.get('username')
+
+    return render_template('airline_staff_dashboard.html', username=username)
+    # Import necessary libraries
+
+    # ...
+# Define a route to view flights
+@app.route('/view_flights', methods=['GET'])
+class view_flights(Form):
+    search_bar = StringField('Search Bar', [validators.Length(min=1, max=25),validators.InputRequired()])
+    start_date = DateField('Start Date', [validators.InputRequired()])
+    end_date = DateField('End Date', [validators.InputRequired()])
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
+    status = RadioField('Status', choices=[('upcoming','Delayed','In-progress','cancelled')], validators=[DataRequired()])
+    SubmitField = SubmitField('Submit')
+
+
+
+def view_flights():
+        # Check if the user has the necessary permission
+        if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+
+        # Get the airline staff's username
+        username = session.get('username')
+        form = view_flights(request.form)
+
+        # Get the upcoming flights operated by the airline for the next 30 days
+        if form is None:
+           start_date = datetime.now().date()
+           end_date = start_date + timedelta(days=30)
+           cursor = conn.cursor(dictionary=True)
+           cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (start_date, end_date))
+           return render_template('view_flights.html', flights=flights,form = form)
+
+        if form is not None:
+            if form.status.data is None:
+                form.status.data = 'upcoming'
+            if form.start_date.data is None:
+                form.start_date.data = datetime.now().date()
+            if form.end_date.data is None:
+                form.end_date.data = form.start_date.data + timedelta(days=30)
+            if form.airline_name.data is None:
+                cursor= conn.cursor(dictionary=True)
+                cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND status = %s", (airline_name, start_date, end_date, status))
+        
+
+
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+            status = form.status.data
+            airline_name = form.airline_name.data
+            cursor= conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND status = %s", (airline_name, start_date, end_date, status))
+            flights = cursor.fetchall()
+            return render_template('view_flights.html', flights=flights,form = form)
+        # Query the database to get the flights based on the range of dates and other criteria
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (username, start_date, end_date))
+        # Query the database to get the flights based on the range of dates and other criteria
+        # ...
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (username, start_date, end_date))
+        flights = cursor.fetchall()
+        
+        return render_template('view_flights.html', flights=flights,form = form)
+
+class CreateFlightForm(Form):
+    flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    departure_airport = StringField('Departure Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    departure_time = DateField('Departure Time', [validators.InputRequired()])
+
+    arrival_airport = StringField('Arrival Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    arrival_time = DateField('Arrival Time', [validators.InputRequired()])
+
+    price = StringField('Price', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    status = StringField('Status', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    airplane_id = StringField('Airplane ID', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    submit = SubmitField('Submit')
+
+
+    # Define a route to create new flights
+@app.route('/create_flight', methods=['GET', 'POST'])
+def create_flight():
+        # Check if the user has the necessary permission
+        if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+
+        # Handle the form submission to create a new flight
+        if request.method == 'POST':
+            # Process the form data and create a new flight
+            # ...
+
+            return redirect(url_for('view_flights'))
+
+        return render_template('create_flight.html')
+
+
+    # Define a route to change the status of flights
+@app.route('/change_flight_status', methods=['GET', 'POST'])
+def change_flight_status():
+        # Check if the user has the necessary permission
+        if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+
+        # Handle the form submission to change the flight status
+        if request.method == 'POST':
+            # Process the form data and update the flight status
+            # ...
+
+            return redirect(url_for('view_flights'))
+
+        return render_template('change_flight_status.html')
 
 class RoleForm(FlaskForm):
     role = RadioField('Role', choices=[('customer','Customer'), ('airline_staff','Airline Staff'), ('booking_agent','Booking Agent')], validators=[DataRequired()])
