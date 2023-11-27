@@ -66,7 +66,7 @@ def login():
             if form.username.data is not None:
               session['username'] = form.username.data
             else:
-                session['username'] = form.email.
+                session['username'] = form.email.data
                 
             session['user_type'] = user['user_type']
             if user['user_type'] == 'airline_staff':
