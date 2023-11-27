@@ -19,7 +19,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking')
+                               database='booking', port = 3307)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -47,7 +47,14 @@ def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("(SELECT username,password FROM airline_staff WHERE username = %s) UNION (SELECT email,password FROM customer WHERE email = %s) UNION (SELECT booking_agent_id,password FROM booking_agent WHERE booking_agent_id = %s) ", (form.username.data, form.email.data, form.username.data))
+        cursor.execute("""(SELECT username,password,'airline_staff' as user_type FROM airline_staff WHERE username = %s) 
+        UNION 
+        (SELECT email,password,'customer' as user_type FROM customer WHERE email = %s) 
+        UNION 
+        (SELECT booking_agent_id,password, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s) """,
+        (form.username.data,
+         form.email.data,
+         form.username.data))
         #pur sql statements here
         user = cursor.fetchone()#receive from database
         print(user)  # Print the user information
@@ -59,9 +66,20 @@ def login():
             if form.username.data is not None:
               session['username'] = form.username.data
             else:
-                session['username'] = form.email.data
+                session['username'] = form.email.
+                
+            session['user_type'] = user['user_type']
+            if user['user_type'] == 'airline_staff':
+                # Serve the airline staff dashboard
+                return "welcome airline staff!"
+            elif user['user_type'] == 'customer':
+                # Serve the customer dashboard
+                return "welcome customer!"
+
+            elif user['user_type'] == 'booking_agent':
+            # Serve the booking agent dashboard
+                return "welcome agent!"
             
-            return "Logged in successfully!"
         else:
             return "Invalid username or password."
     return render_template('main-login.html', form=form)
@@ -82,6 +100,7 @@ def register():
         elif form.role.data == 'booking_agent':
             return redirect(url_for('register_booking_agent'))
     return render_template('main-reg.html', form=form)
+
 
 
 class AirlineStaffRegisterForm(Form):
@@ -115,7 +134,7 @@ class AirlineStaffRegisterForm(Form):
         )
     ]) 
     @staticmethod
-    def hash_password(self,password):
+    def hash_password(password):
         """
         Hashes the given password using the generate_password_hash function from werkzeug.security.
 
@@ -130,31 +149,27 @@ def register_airline_staff():
     if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM airline_staff WHERE username = %s",
-            (form.username.data)
+            "SELECT * FROM airline_staff WHERE Username = %s",
+            (form.username.data,)
         )
         existing_user = cursor.fetchone()
         if existing_user:
             return "User already exists"
-
         else:
-
             cursor.execute(
-                "INSERT INTO airline_staff(airline_name,username, first_name, last_name,password, DOB ) VALUES (%s, %s, %s, %s, %s, %s)",
+                "INSERT INTO airline_staff(Airline_name, username, first_name, last_name, password, DOB) VALUES (%s, %s, %s, %s, %s, %s)",
                 (
                     form.airline_name.data,
                     form.username.data,
                     form.first_name.data,
                     form.last_name.data,
                     form.hash_password(form.password.data),
-                    form.dob.data,
-                    
+                    form.dob.data
                 )
             )
-        conn.commit()
-        cursor.close()
-        # Add code to handle airline staff registration
-        return "Airline staff registered successfully!"
+            conn.commit()
+            cursor.close()
+            return "Airline staff registered successfully!"
     return render_template('airline-staff-reg.html', form=form)
 
 # @app.route('/register/booking_agent', methods=['GET', 'POST'])
@@ -214,23 +229,27 @@ def register_customer():
     
     if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO customer(first_name, last_name, email, password, building, building_no, street, city, passport_expiration, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)",
-            (
-                form.first_name.data,
-                form.last_name.data,
-                form.email.data,
-                form.hash_password(form.password.data),
-                form.building_name.data if form.building_name.data is not None else None,
-                form.building_number.data if form.building_number.data is not None else None,
-                form.street_name.data if form.street_name.data is not None else None,
-                form.city_name.data if form.city_name.data is not None else None,
-                form.passport_expiry.data,
-                form.phone_number.data if form.phone_number.data is not None else None
+        cursor.execute("SELECT * FROM customer WHERE email = %s", (form.email.data,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return "User already exists"
+        else:
+            cursor.execute(
+                "INSERT INTO customer(first_name, last_name, email, password, building, building_no, street, city, passport_expiration, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)",
+                (
+                    form.first_name.data,
+                    form.last_name.data,
+                    form.email.data,
+                    form.hash_password(form.password.data),
+                    form.building_name.data if form.building_name.data is not None else None,
+                    form.building_number.data if form.building_number.data is not None else None,
+                    form.street_name.data if form.street_name.data is not None else None,
+                    form.city_name.data if form.city_name.data is not None else None,
+                    form.passport_expiry.data,
+                    form.phone_number.data if form.phone_number.data is not None else None
+                )
             )
-        )
-        conn.commit()
-        cursor.close()
+        
         print("entered")
         return "Customer registered successfully!"
 
@@ -240,13 +259,14 @@ def register_customer():
 class BookingAgentRegisterForm(Form):
     
     booking_agent_id = StringField('Booking Agent ID', [validators.Length(min=1, max=25),validators.InputRequired()])
+
     email = StringField('Email', [validators.Email(message='Invalid email'), validators.Optional()])
 
     airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
 
     email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
 
-     password = PasswordField('Password', [
+    password = PasswordField('Password', [
         validators.InputRequired(),
         validators.Length(min=8),
         validators.Regexp(
@@ -263,6 +283,43 @@ class BookingAgentRegisterForm(Form):
             message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
         )
     ])
+
+
+    @staticmethod
+    def hash_password(password):
+        """
+        Hashes the given password using the generate_password_hash function from werkzeug.security.
+
+        :param password: The password to be hashed.
+        :return: The hashed password.
+        """
+        return generate_password_hash(password)
+@app.route('/register/register_booking_agent', methods=['GET', 'POST'])
+def register_booking_agent():
+    form = BookingAgentRegisterForm(request.form)
+    if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
+        cursor = conn.cursor()
+        cursor.execute("select * from booking_agent where booking_agent_id = %s", (form.booking_agent_id.data,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return "User already exists"
+        else:
+            cursor.execute(
+                "INSERT INTO booking_agent(booking_agent_id, airline_name, email, password) VALUES (%s, %s, %s, %s)",
+                (
+                    form.booking_agent_id.data,
+                    form.airline_name.data,
+                    form.email.data,
+                    form.hash_password(form.password.data),
+                    
+                )
+            )
+        
+        print("entered")
+        return "Booking Agent registered successfully!"
+
+
+    return render_template('booking-agent-reg.html', form=form)
 
 
 
