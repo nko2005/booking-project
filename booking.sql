@@ -156,7 +156,9 @@ CREATE TABLE `flight` (
   `Flight_number` varchar(8) NOT NULL,
   `Airline_name` varchar(20) NOT NULL,
   `Arrival_Airport` varchar(20) NOT NULL,
+  `Arrival_date` date DEFAULT NULL,
   `Departure_Airport` varchar(20) NOT NULL,
+  `Departure_date` date DEFAULT NULL,
   `Departure_hr` decimal(2,0) DEFAULT NULL CHECK (`Departure_hr` >= 0 and `Departure_hr` < 24),
   `Departure_min` decimal(2,0) DEFAULT NULL CHECK (`Departure_min` >= 0 and `Departure_min` < 60),
   `Arrival_hr` decimal(2,0) DEFAULT NULL CHECK (`Arrival_hr` >= 0 and `Arrival_hr` < 24),
@@ -170,9 +172,9 @@ CREATE TABLE `flight` (
 -- Dumping data for table `flight`
 --
 
-INSERT INTO `flight` (`Flight_number`, `Airline_name`, `Arrival_Airport`, `Departure_Airport`, `Departure_hr`, `Departure_min`, `Arrival_hr`, `Arrival_min`, `Airplane_ID`, `Price`, `Status`) VALUES
-('3443', 'Shanghai Global', 'JFK', 'PVG', 19, 30, 2, 30, '454033', 500.00, 'Upcoming');
-
+INSERT INTO `flight` (`Flight_number`, `Airline_name`, `Arrival_Airport`, `Arrival_date`, `Departure_Airport`, `Departure_date`, `Departure_hr`, `Departure_min`, `Arrival_hr`, `Arrival_min`, `Airplane_ID`, `Price`, `Status`) 
+VALUES
+('3443', 'Shanghai Global', 'JFK', '2022-12-01', 'PVG', '2022-11-30', 19, 30, 2, 30, '454033', 500.00, 'Upcoming');
 -- --------------------------------------------------------
 
 --
