@@ -2,7 +2,8 @@
 <html>
 <head>
     <title>Airline Staff Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/airline-staff-dashboard-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 </head>
 <body>
     <header>
@@ -12,7 +13,7 @@
     <nav>
         <ul>
             <li><a href="#">Home</a></li>
-            <li><a href="{{ url_for('view_flights') }}">Flights</a></li>
+            <li><a href="{{ url_for('view_flights',username=username) }}">Flights</a></li>
             <li><a href="#">Passengers</a></li>
             <li><a href="#">Reports</a></li>
             <li><a href="#">Settings</a></li>

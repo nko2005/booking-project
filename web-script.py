@@ -90,18 +90,17 @@ def login():
     return render_template('main-login.html', form=form)
 
 
-@app.route('login/airline_staff_dashboard')
+@app.route('/login/airline_staff_dashboard')
 def airline_staff_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
 
-    return render_template('airline_staff_dashboard.html', username=username)
+    return render_template('airline-staff/airline-staff-dashboard.html', username=username)
     # Import necessary libraries
 
     # ...
-# Define a route to view flights
-@app.route('/view_flights', methods=['GET'])
-class view_flights(Form):
+
+class ViewFlightsForm(Form):
     search_bar = StringField('Search Bar', [validators.Length(min=1, max=25),validators.InputRequired()])
     start_date = DateField('Start Date', [validators.InputRequired()])
     end_date = DateField('End Date', [validators.InputRequired()])
@@ -110,25 +109,33 @@ class view_flights(Form):
     SubmitField = SubmitField('Submit')
 
 
-
-def view_flights():
+# Define a route to view flights
+@app.route('/login/view_flights/user/<username>', methods=['GET','POST'])
+def view_flights(username):
         # Check if the user has the necessary permission
         if not session.get('permission') == 'admin':
             return "Unauthorized", 403
 
         # Get the airline staff's username
-        username = session.get('username')
-        form = view_flights(request.form)
+        start_date = datetime.now().date()
+        end_date = start_date + timedelta(days=30)
+        status = 'upcoming'
+        form = ViewFlightsForm(request.form)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s", (username, start_date, end_date))
+        flights = cursor.fetchall()
+
+
 
         # Get the upcoming flights operated by the airline for the next 30 days
-        if form is None:
-           start_date = datetime.now().date()
-           end_date = start_date + timedelta(days=30)
-           cursor = conn.cursor(dictionary=True)
-           cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (start_date, end_date))
-           return render_template('view_flights.html', flights=flights,form = form)
+        # if form is None and request.method == 'GET':
+        #    start_date = datetime.now().date()
+        #    end_date = start_date + timedelta(days=30)
+        #    cursor = conn.cursor(dictionary=True)
+        #    cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (start_date, end_date))
+        #    return render_template('view_flights.html', flights=flights,form = form,username = username)
 
-        if form is not None:
+        if form is not None and form.validate_on_submit() and request.method == 'POST':
             if form.status.data is None:
                 form.status.data = 'upcoming'
             if form.start_date.data is None:
@@ -138,28 +145,14 @@ def view_flights():
             if form.airline_name.data is None:
                 cursor= conn.cursor(dictionary=True)
                 cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND status = %s", (airline_name, start_date, end_date, status))
-        
-
-
-            start_date = form.start_date.data
-            end_date = form.end_date.data
-            status = form.status.data
-            airline_name = form.airline_name.data
-            cursor= conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND status = %s", (airline_name, start_date, end_date, status))
-            flights = cursor.fetchall()
-            return render_template('view_flights.html', flights=flights,form = form)
+                flights = cursor.fetchall()
+            
+            return render_template('view_flights.html', flights=flights,form = form,username = username)
         # Query the database to get the flights based on the range of dates and other criteria
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (username, start_date, end_date))
+        # cursor = conn.cursor(dictionary=True)
+        # cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (username, start_date, end_date))
         # Query the database to get the flights based on the range of dates and other criteria
-        # ...
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (username, start_date, end_date))
-        flights = cursor.fetchall()
-        
-        return render_template('view_flights.html', flights=flights,form = form)
+        return render_template('view_flights.html', flights=flights,form = form,username =username)
 
 class CreateFlightForm(Form):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
@@ -198,7 +191,10 @@ def create_flight():
 
         return render_template('create_flight.html')
 
-
+class changeflightstatus(Form):
+    flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
+    status = RadioField('Status', [validators.Length(min=1, max=25),validators.InputRequired()])
     # Define a route to change the status of flights
 @app.route('/change_flight_status', methods=['GET', 'POST'])
 def change_flight_status():
@@ -300,7 +296,7 @@ def register_airline_staff():
             conn.commit()
             cursor.close()
             return "Airline staff registered successfully!"
-    return render_template('airline-staff-reg.html', form=form)
+    return render_template('airline-staff/airline-staff-reg.html', form=form)
 
 # @app.route('/register/booking_agent', methods=['GET', 'POST'])
 # def register_booking_agent():
