@@ -20,7 +20,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3307)
+                               database='booking', port = 3306)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -113,6 +113,12 @@ def airline_staff_dashboard():
     # Import necessary libraries
 
     # ...
+@app.route('/login/customer_dashboard')
+def customer_dashboard():
+    # Add your code here to handle the airline staff dashboard functionality
+    username = session.get('username')
+
+    return render_template('customer/customer-dashboard.html', username=username)
 
 class ViewFlightsForm(FlaskForm):
     def __init__(self, *args, **kwargs):
@@ -409,7 +415,7 @@ def register_customer():
         return "Customer registered successfully!"
 
 
-    return render_template('customer-registration.html', form=form)
+    return render_template('customer/customer-registration.html', form=form)
 
 class BookingAgentRegisterForm(Form):
     

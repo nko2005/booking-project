@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/airline-staff-dashboard-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <header>
+        <h1>Welcome,{{ username }}!</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="{{ url_for('view_flights',username=username) }}">Flights</a></li>
+            <li><a href="#">Tickets Purchase</a></li>
+            <li><a href="#">Flight Search</a></li>
+            <li><a href="#">Track My Spending</a></li>
+            <li><a href="#">Logout</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <!-- Dashboard content goes here -->
+    </main>
+    
+    <footer>
+        <p>&copy; 2022 Customer Dashboard. All rights reserved.</p>
+    </footer>
+</body>
+</html>
