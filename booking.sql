@@ -51,15 +51,16 @@ CREATE TABLE `airline_staff` (
   `first_name` varchar(20) NOT NULL,
   `last_name` varchar(20) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `Dob` date DEFAULT NULL
+  `Dob` date DEFAULT NULL,
+  `permission` enum('admin','staff') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `airline_staff`
 --
 
-INSERT INTO `airline_staff` (`id`, `Airline_name`, `Username`, `first_name`, `last_name`, `password`, `Dob`) VALUES
-(1, 'Shanghai Global', 'staff1', 'John', 'Doe', 'scrypt:32768:8:1$1dZCs1FKpfgdFlFu$4e34b3d2eda8b7118c7fbe7eb77573f690217dfcfa777916d4fc2cb528c054dbc80bcf44d583abdf9ac7c6be907edbdec0e82f062f9422453be097082632e8b9', '1980-01-01');
+INSERT INTO `airline_staff` (`id`, `Airline_name`, `Username`, `first_name`, `last_name`, `password`, `Dob`,`permission`) VALUES
+(1, 'Shanghai Global', 'staff1', 'John', 'Doe', 'scrypt:32768:8:1$1dZCs1FKpfgdFlFu$4e34b3d2eda8b7118c7fbe7eb77573f690217dfcfa777916d4fc2cb528c054dbc80bcf44d583abdf9ac7c6be907edbdec0e82f062f9422453be097082632e8b9', '1980-01-01','admin');
 
 -- --------------------------------------------------------
 

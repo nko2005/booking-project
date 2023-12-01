@@ -52,7 +52,7 @@ def login():
         UNION 
         (SELECT email,password,'customer' as user_type FROM customer WHERE email = %s) 
         UNION 
-        (SELECT booking_agent_id,password, airline_name 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s) """,
+        (SELECT booking_agent_id,password, airline_name, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s) """,
         (form.username.data,
          form.email.data,
          form.username.data))
