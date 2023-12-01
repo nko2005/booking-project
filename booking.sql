@@ -157,8 +157,10 @@ CREATE TABLE `flight` (
   `Flight_number` varchar(8) NOT NULL,
   `Airline_name` varchar(20) NOT NULL,
   `Arrival_Airport` varchar(20) NOT NULL,
+  `Arrival_City` varchar(15) NOT NULL,
   `Arrival_date` date DEFAULT NULL,
   `Departure_Airport` varchar(20) NOT NULL,
+  `Departure_City` varchar(15) NOT NULL,
   `Departure_date` date DEFAULT NULL,
   `Departure_hr` decimal(2,0) DEFAULT NULL CHECK (`Departure_hr` >= 0 and `Departure_hr` < 24),
   `Departure_min` decimal(2,0) DEFAULT NULL CHECK (`Departure_min` >= 0 and `Departure_min` < 60),
@@ -226,7 +228,8 @@ ALTER TABLE `airplane`
 -- Indexes for table `airport`
 --
 ALTER TABLE `airport`
-  ADD PRIMARY KEY (`Airport_name`);
+  ADD PRIMARY KEY (`Airport_name`),
+  ADD INDEX idx_city (City);
 
 --
 -- Indexes for table `booking_agent`
@@ -250,7 +253,9 @@ ALTER TABLE `flight`
   ADD PRIMARY KEY (`Flight_number`),
   ADD KEY `Airline_name` (`Airline_name`),
   ADD KEY `Arrival_Airport` (`Arrival_Airport`),
+  ADD KEY `Arrival_City` (`Arrival_City`), 
   ADD KEY `Departure_Airport` (`Departure_Airport`),
+  ADD KEY `Departure_City` (`Departure_City`),
   ADD KEY `Airplane_ID` (`Airplane_ID`);
 
 --

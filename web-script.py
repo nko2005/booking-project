@@ -8,7 +8,7 @@ This script is a Flask web application that handles user login functionality.
 from flask import Flask, render_template, request, url_for, redirect, session
 from flask_wtf import FlaskForm 
 import mysql.connector 
-from wtforms import DateField, Form, RadioField, StringField, PasswordField, SubmitField, validators 
+from wtforms import DateField, Form, RadioField, StringField, PasswordField, SubmitField, validators, SelectField
 from werkzeug.security import generate_password_hash 
 from werkzeug.security import check_password_hash 
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
@@ -48,11 +48,11 @@ def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""(SELECT username,password,airline_name,'airline_staff' as user_type FROM airline_staff WHERE username = %s) 
+        cursor.execute("""(SELECT username,password,'airline_staff' as user_type FROM airline_staff WHERE username = %s) 
         UNION 
         (SELECT email,password,'customer' as user_type FROM customer WHERE email = %s) 
         UNION 
-        (SELECT booking_agent_id,password, airline_name, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s) """,
+        (SELECT booking_agent_id,password, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s) """,
         (form.username.data,
          form.email.data,
          form.username.data))
@@ -73,8 +73,14 @@ def login():
             
             if user['user_type'] == 'airline_staff':
                 # Serve the airline staff dashboard
-                session["permission"] = "admin"
-                session["airline"]= user['airline_name']
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""SELECT airline_name,permission FROM airline_staff WHERE username = %s """,
+                (session['username'],))
+                userinfo = cursor.fetchone()
+                session["airline"]= userinfo['airline_name']
+                session["permission"] = userinfo['permission']
+                conn.commit()
+                cursor.close()
                 return redirect(url_for('airline_staff_dashboard'))
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
@@ -83,8 +89,14 @@ def login():
 
             elif user['user_type'] == 'booking_agent':
             # Serve the booking agent dashboard
-                session["permission"] = "user"
-                session["airline"]= user['airline_name']
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""(SELECT airline_name FROM booking_agent WHERE username = %s) """,
+                (session['username']))
+                userinfo = cursor.fetchone()
+                session["airline"]= userinfo['airline_name']
+                session["permission"] = 'user'
+                conn.commit()
+                cursor.close()
                 return "welcome agent!"
             
         else:
@@ -102,12 +114,26 @@ def airline_staff_dashboard():
 
     # ...
 
-class ViewFlightsForm(Form):
+class ViewFlightsForm(FlaskForm):
+    def __init__(self, *args, **kwargs):
+        super(ViewFlightsForm, self).__init__(*args, **kwargs)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT airport_name, city FROM airport")
+        city_list = cursor.fetchall()
+        cursor.close()
+        conn.commit()
+    
+        
+        city_choices = [(city['airport_name'], city['airport_name'] + ', ' + city['city']) for city in city_list]
+        city_choices.insert(0, ('', 'Select a city'))  # Add an empty choice at the beginning
+        self.depart_from.choices = city_choices
+        self.arrive_at.choices = city_choices
 
-    depart_from = StringField('Depart From', [validators.Length(min=1, max=25),validators.InputRequired()])
-    arrive_at = StringField('Arrive At', [validators.Length(min=1, max=25),validators.InputRequired()])
-    start_date = DateField('Start Date', [validators.InputRequired()])
-    end_date = DateField('End Date', [validators.InputRequired()])
+    depart_from = SelectField('Depart From', validators=[validators.InputRequired()])
+    arrive_at = SelectField('Arrive At', validators=[validators.InputRequired()])
+    start_date = DateField('Start Date', default=datetime.now().date(), format='%Y-%m-%d',validators=[validators.Optional()])
+    end_date = DateField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d',validators=[validators.Optional()])
+    Submit = SubmitField('Submit')
 
 
 # Define a route to view flights
@@ -116,31 +142,44 @@ def view_flights(username):
         # Check if the user has the necessary permission
         if not session.get('permission') == 'admin':
             return "Unauthorized", 403
-        form = ViewFlightsForm(request.form)
+        form = ViewFlightsForm()
+        print("before filling:" ,form)
         # Get the airline staff's username
-        if form is not None and form.validate_on_submit() and request.method == 'POST':
-            
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND departure_date = %s AND arrival_date = %s", (session.get('airline'), form.start_date.data, form.end_date.data,form.depart_from.data,form.arrive_at.data))
-                flights = cursor.fetchall()
-            
-                return render_template('view_flights.html', flights=flights,form = form,username = username)
-        else:
-            start_date = datetime.now().date()
-            end_date = start_date + timedelta(days=30)
-            status = 'upcoming'
+        print("big rock stars")
+        print(datetime.now().date())
+       
+        if form.validate_on_submit() and request.method == 'POST':
+                print("$$$$$$$entered$$$$$$$")
+                if form.start_date.data > form.end_date.data:
+                    return "Invalid date range"
+                else:
+
+                    
+
+                    start_date = form.start_date.data
+                    end_date = form.end_date.data
+                    
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute("(SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND arrival_date = %s AND Departure_Airport = %s AND Arrival_Airport = %s)", (session.get('airline'), start_date,end_date,end_date,form.depart_from.data,form.arrive_at.data))
+                    
+                    flights = cursor.fetchall()
+                    conn.commit()
+                    cursor.close()
                 
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND departure_date = %s AND arrival_date = %s", (session.get('airline'), start_date, end_date))
-            flights = cursor.fetchall()
-            return render_template('view_flights.html', flights=flights,form = form,username = username)
-        # Query the database to get the flights based on the range of dates and other criteria
-        
-        # Query the database to get the flights based on the range of dates and other criteria
-        # cursor = conn.cursor(dictionary=True)
-        # cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_time BETWEEN %s AND %s", (username, start_date, end_date))
-        # Query the database to get the flights based on the range of dates and other criteria
-        return render_template('view_flights.html', flights=flights,form = form,username =username)
+                    return render_template('view-flights.html', flights=flights,form = form,username = username)
+        else:
+                
+                start_date = datetime.now().date()
+                end_date = start_date + timedelta(days=30)
+                status = 'upcoming'
+                    
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND Status = %s", (session.get('airline'), start_date, end_date,status))
+                flights = cursor.fetchall()
+                conn.commit()
+                cursor.close()
+                return render_template('view-flights.html', flights=flights,form = form,username = username)
+            
 
 class CreateFlightForm(Form):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
@@ -323,7 +362,7 @@ class CustomerRegisterForm(Form):
 
     building_number = StringField('Building Number', [validators.Length(min=1, max=50), validators.Optional()])
 
-    passport_expiry = DateField('Passport Expiry', [validators.InputRequired()])
+    passport_expiry = DateField('Passport Expiry', [validators.InputRequired()],format='%Y-%m-%d')
     phone_number = StringField('Phone Number', [validators.Length(min=1, max=25), validators.Optional()])
 
     @staticmethod
@@ -363,6 +402,8 @@ def register_customer():
                     form.phone_number.data if form.phone_number.data is not None else None
                 )
             )
+        conn.commit()
+        cursor.close()
         
         print("entered")
         return "Customer registered successfully!"
@@ -428,6 +469,8 @@ def register_booking_agent():
                     
                 )
             )
+        conn.commit()
+        cursor.close()
         
         print("entered")
         return "Booking Agent registered successfully!"
