@@ -74,30 +74,38 @@ def login():
             if user['user_type'] == 'airline_staff':
                 # Serve the airline staff dashboard
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("""SELECT airline_name,permission FROM airline_staff WHERE username = %s """,
-                (session['username'],))
+                cursor.execute("""(SELECT airline_name, permission FROM airline_staff WHERE username = %s)""",
+                (session['username']))
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
                 session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
-                return redirect(url_for('airline_staff_dashboard'))
+                return redirect(url_for('airline-staff-dashboard'))
+            
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
-                session["permission"] = "user"
-                return "welcome customer!"
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""(SELECT airline_name, permission FROM airline_staff WHERE username = %s)""",
+                (session['username']))
+                userinfo = cursor.fetchone()
+                session["airline"]= userinfo['airline_name']
+                session["permission"] = userinfo['permission']
+                conn.commit()
+                cursor.close()
+                return redirect(url_for('customer-dashboard'))
 
             elif user['user_type'] == 'booking_agent':
             # Serve the booking agent dashboard
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("""(SELECT airline_name FROM booking_agent WHERE username = %s) """,
+                cursor.execute("""(SELECT airline_name, permission FROM booking_agent WHERE username = %s) """,
                 (session['username']))
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
-                session["permission"] = 'user'
+                session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
-                return "welcome agent!"
+                return redirect(url_for('booking-agent-dashboard'))
             
         else:
             return "Invalid username or password."
