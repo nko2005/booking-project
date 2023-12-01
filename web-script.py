@@ -74,14 +74,13 @@ def login():
             if user['user_type'] == 'airline_staff':
                 # Serve the airline staff dashboard
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("""(SELECT airline_name, permission FROM airline_staff WHERE username = %s)""",
-                (session['username']))
+                cursor.execute("""SELECT airline_name, permission FROM airline_staff WHERE username = %s""", (session['username'],))
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
                 session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
-                return redirect(url_for('airline-staff-dashboard'))
+                return redirect(url_for('airline_staff_dashboard'))
             
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
@@ -93,7 +92,7 @@ def login():
                 session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
-                return redirect(url_for('customer-dashboard'))
+                return redirect(url_for('customer_dashboard'))
 
             elif user['user_type'] == 'booking_agent':
             # Serve the booking agent dashboard
@@ -105,7 +104,7 @@ def login():
                 session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
-                return redirect(url_for('booking-agent-dashboard'))
+                return redirect(url_for('booking_agent_dashboard'))
             
         else:
             return "Invalid username or password."
@@ -127,6 +126,13 @@ def customer_dashboard():
     username = session.get('username')
 
     return render_template('customer/customer-dashboard.html', username=username)
+
+@app.route('/login/booking_agent_dashboard')
+def customer_dashboard():
+    # Add your code here to handle the airline staff dashboard functionality
+    username = session.get('username')
+
+    return render_template('booking-agent/booking-agent-dashboard.html', username=username)
 
 class ViewFlightsForm(FlaskForm):
     def __init__(self, *args, **kwargs):
