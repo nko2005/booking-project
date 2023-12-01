@@ -199,7 +199,37 @@ def view_flights(username):
                 conn.commit()
                 cursor.close()
                 return render_template('view-flights.html', flights=flights,form = form,username = username)
-            
+
+# New route for purchasing tickets
+@app.route('/login/purchase_tickets')
+def purchase_tickets():
+    # Implement logic to allow the customer to purchase tickets
+    # You may need to integrate with a payment gateway and update the database accordingly
+
+    return render_template('customer/purchase-tickets.html', username=username)
+
+# New route for searching flights
+@app.route('/login/search_flights')
+def search_flights():
+    # Implement logic to search for upcoming flights based on user input
+    # You may need to query your database for available flights
+
+    return render_template('customer/search-flights.html', username=username, search_results=search_results)
+
+# New route for tracking spending
+@app.route('/login/track_spending')
+def track_spending():
+    # Implement logic to track spending, retrieve and display spending data
+    # You may need to query your database for spending information
+
+    return render_template('customer/track-spending.html', username=username, spending_data=spending_data)
+
+# New route for logout
+@app.route('/logout')
+def logout():
+    # Clear the session and redirect to a goodbye or login page
+    session.clear()
+    return render_template('goodbye.html')           
 
 class CreateFlightForm(Form):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
