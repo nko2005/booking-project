@@ -17,7 +17,7 @@
             <li><a href="{{url_for('passenger_list',username=username)}}">Passengers</a></li>
             <li><a href="{{url_for('register_air',username=username)}}">insert</a></li>
             <li><a href="#">Reports</a></li>
-            <li><a href="#">Booking Agents</a></li>
+            <li><a href="{{url_for('agent_actions',username=username)}}">Booking Agents</a></li>
             <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
     </nav>

@@ -16,11 +16,12 @@
         {{ form.csrf_token }}
         {{ form.hidden_tag() }}
         <label for="Flight_number">Flight Number:</label>
-        {{for error in form.Flight_number.errors}}
+      
         <input type="text" id="Flight_number" name="Flight_number">
+        {% for error in form.Flight_number.errors %}
         <span class="error">{{ error }}</span>
         {% endfor %}
-        
+
             <label for="depart_from">Depart From:</label>
             <select id="depart_from" name="depart_from">
                 <!-- You'll need to generate these options dynamically in your server-side code -->
@@ -28,7 +29,7 @@
                 {% for city in form.depart_from.choices %}
                 <option value="{{ city[0] }}">{{ city[1] }}</option>
                 {% endfor %}
-            </select>
+            </select><br><br>
         
             <label for="arrive_at">Arrive At:</label>
             <select id="arrive_at" name="arrive_at">
@@ -36,7 +37,7 @@
                 {% for city in form.arrive_at.choices %}
                 <option value="{{ city[0] }}">{{ city[1] }}</option>
                 {% endfor %}
-            </select>
+            </select><br><br>
 
 
 
@@ -46,10 +47,10 @@
         <input type="datetime-local" id="departure_date_time" name="departure_date_time" required><br><br>
         <label for="arrival_date_time">Arrival Date and Time:</label>
         <input type="datetime-local" id="arrival_date_time" name="arrival_date_time" required><br><br>
-        <label for="airplane_id">Airplane ID:</label>
-        <select id="airplane_id" name="airplane_id" required>
-            <option value="" selected disabled>Select a plane</option>
-            {% for plane in airplane_id_choices %}
+        <label for="airplane_id">Airplane ID:</label> 
+        <select id="airplane_id" name="airplane_id">
+
+            {% for plane in form.airplane_id.choices %}
                 <option value="{{ plane[0] }}">{{ plane[1] }}</option>
             {% endfor %}
         </select><br><br>
