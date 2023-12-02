@@ -86,8 +86,14 @@ def login():
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
                 session["permission"] = userinfo['permission']
+
+        
+
                 conn.commit()
                 cursor.close()
+
+
+
                 return redirect(url_for('airline_staff_dashboard'))
             
             elif user['user_type'] == 'customer':
@@ -122,7 +128,7 @@ def logout():
 
 
 
-@app.route('/login/airline_staff_dashboard')
+@app.route('/login/airline_staff_dashboard', methods=['GET', 'POST'])
 def airline_staff_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
@@ -140,7 +146,7 @@ def customer_dashboard():
 
     return render_template('customer/customer-dashboard.html', username=username)
 
-@app.route('/login/booking_agent_dashboard')
+@app.route('/login/booking_agent_dashboard', methods=['GET', 'POST'])
 def booking_agent_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
@@ -211,46 +217,8 @@ def view_flights(username):
                 flights = cursor.fetchall()
                 conn.commit()
                 cursor.close()
-                return render_template('view-flights.html', flights=flights,form = form,username = username)
-            
-
-class CreateFlightForm(Form):
-    flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
-    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    departure_airport = StringField('Departure Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    departure_time = DateField('Departure Time', [validators.InputRequired()])
-
-    arrival_airport = StringField('Arrival Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    arrival_time = DateField('Arrival Time', [validators.InputRequired()])
-
-    price = StringField('Price', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    status = StringField('Status', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    airplane_id = StringField('Airplane ID', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    submit = SubmitField('Submit')
-
-
-    # Define a route to create new flights
-@app.route('/create_flight', methods=['GET', 'POST'])
-def create_flight():
-        # Check if the user has the necessary permission
-        if not session.get('permission') == 'admin':
-            return "Unauthorized", 403
-
-        # Handle the form submission to create a new flight
-        if request.method == 'POST':
-            # Process the form data and create a new flight
-            # ...
-
-            return redirect(url_for('view_flights'))
-
-        return render_template('create_flight.html')
-
+                return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+     
 class changeflightstatus(Form):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
     airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
@@ -321,31 +289,30 @@ def register_air(username):
         if air_form.asset.data == 'airport':
             return redirect(url_for('add_airport',username= username))
         elif air_form.asset.data == 'flight':
-            return redirect(url_for('create_flight',username= username))
+            return redirect(url_for('add_flight',username= username))
         elif air_form.asset.data == 'airplane':
             return redirect(url_for('add_airplane',username= username))
     return render_template('airline-staff/register-air.html', air_form=air_form,username=username)
 
-class AddFlight(FlaskForm):
+class AddFlightForm(FlaskForm):
     def __init__(self, *args, **kwargs):
-        super(ViewFlightsForm, self).__init__(*args, **kwargs)
+        super(AddFlightForm, self).__init__(*args, **kwargs)
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT airport_name, city FROM airport")
         city_list = cursor.fetchall()
-        cursor.close()
-        conn.commit()
+        
     
         
-        city_choices = [(city['airport_name'], city['airport_name'] + ', ' + city['city']) for city in city_list]
+        city_choices = [((city['airport_name'],city['city']), city['airport_name'] + ', ' + city['city']) for city in city_list]
         city_choices.insert(0, ('', 'Select a city'))  # Add an empty choice at the beginning
         self.depart_from.choices = city_choices
         self.arrive_at.choices = city_choices
 
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT  Airplane_ID a FROM Airplane where airline_name = %s",(session.get('airline'),))
+       
+        cursor.execute("SELECT  Airplane_ID FROM Airplane where airline_name = %s",(session.get('airline'),))
 
         plane_list = cursor.fetchall()
-        self.airplane_id.choices = [(plane['Airplane_id'], plane['Airplane_id']) for plane in plane_list]
+        self.airplane_id.choices = [(plane['Airplane_ID'], plane['Airplane_ID']) for plane in plane_list]
         self.airplane_id.choices.insert(0, ('', 'Select a plane'))  # Add an empty choice at the beginning
         cursor.close()
         conn.commit()
@@ -369,7 +336,7 @@ def add_flight(username):
 
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
-    form = AddFlight()
+    form = AddFlightForm()
     if request.method == 'POST' and form.validate():
         print("i go sneakin sneakin sneakin")
         cursor = conn.cursor()
@@ -381,10 +348,20 @@ def add_flight(username):
         if existing_user:
             return "Flight already exists"
         else:
+            arrival_airport,arrival_city = form.arrive_at.data
+            departure_airport,departure_city = form.depart_from.data
+            dep_hour, dep_minute = map(int, form.departure_date_time.data.strftime('%H:%M').split(':'))
+            arr_hour, arr_minute = map(int, form.arrival_date_time.data.strftime('%H:%M').split(':'))
+
             cursor.execute(
-                """INSERT INTO flight(flight_number,airline_name,Arrival_airport,
+                """INSERT INTO flight(
+                flight_number,
+                airline_name,
+                Arrival_airport,
                 Arrival_City,
-                Arrival_Date,Departure_Airport,Departure_city,
+                Arrival_Date,
+                Departure_Airport,
+                Departure_city,
                 Departure_date,
                 Departure_hr,
                 Departure_min,
@@ -396,10 +373,16 @@ def add_flight(username):
                 (
                     form.Flight_number.data,
                     session.get('airline'),
-                    form.depart_from.data,
-                    form.departure_date_time.data,
-                    form.arrive_at.data,
-                    form.arrival_date_time.data,
+                    arrival_airport,
+                    arrival_city,
+                    form.arrival_date_time.data.date(),
+                    departure_airport,
+                    departure_city,
+                    form.departure_date_time.data.date(),
+                    dep_hour,
+                    dep_minute,
+                    arr_hour,
+                    arr_minute,
                     form.airplane_id.data,
                     form.price.data
                 )
@@ -408,6 +391,8 @@ def add_flight(username):
             cursor.close()
             return "Flight added successfully!"
     print(form.errors)
+
+    return render_template('airline-staff/add-flight.html', form=form,username=username)
 
 
 
