@@ -20,7 +20,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3306)
+                               database='booking', port = 3307)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -85,12 +85,9 @@ def login():
             
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""(SELECT airline_name, permission FROM airline_staff WHERE username = %s)""",
-                (session['username']))
+            
                 userinfo = cursor.fetchone()
-                session["airline"]= userinfo['airline_name']
-                session["permission"] = userinfo['permission']
+                session["permission"] = "user"
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('customer_dashboard'))
@@ -102,7 +99,7 @@ def login():
                 (session['username']))
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
-                session["permission"] = userinfo['permission']
+                session["permission"] = "user"
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('booking_agent_dashboard'))
