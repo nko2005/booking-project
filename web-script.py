@@ -20,7 +20,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3307)
+                               database='booking', port = 3306)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -75,30 +75,37 @@ def login():
             if user['user_type'] == 'airline_staff':
                 # Serve the airline staff dashboard
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("""SELECT airline_name,permission FROM airline_staff WHERE username = %s """,
-                (session['username'],))
+                cursor.execute("""SELECT airline_name, permission FROM airline_staff WHERE username = %s""", (session['username'],))
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
                 session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('airline_staff_dashboard'))
+            
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
-                session["permission"] = "user"
-                return "welcome customer!"
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""(SELECT airline_name, permission FROM airline_staff WHERE username = %s)""",
+                (session['username']))
+                userinfo = cursor.fetchone()
+                session["airline"]= userinfo['airline_name']
+                session["permission"] = userinfo['permission']
+                conn.commit()
+                cursor.close()
+                return redirect(url_for('customer_dashboard'))
 
             elif user['user_type'] == 'booking_agent':
             # Serve the booking agent dashboard
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("""(SELECT airline_name FROM booking_agent WHERE username = %s) """,
+                cursor.execute("""(SELECT airline_name, permission FROM booking_agent WHERE username = %s) """,
                 (session['username']))
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
-                session["permission"] = 'user'
+                session["permission"] = userinfo['permission']
                 conn.commit()
                 cursor.close()
-                return "welcome agent!"
+                return redirect(url_for('booking_agent_dashboard'))
             
         else:
             return "Invalid username or password."
@@ -121,6 +128,19 @@ def airline_staff_dashboard():
     # Import necessary libraries
 
     # ...
+@app.route('/login/customer_dashboard')
+def customer_dashboard():
+    # Add your code here to handle the airline staff dashboard functionality
+    username = session.get('username')
+
+    return render_template('customer/customer-dashboard.html', username=username)
+
+@app.route('/login/booking_agent_dashboard')
+def booking_agent_dashboard():
+    # Add your code here to handle the airline staff dashboard functionality
+    username = session.get('username')
+
+    return render_template('booking-agent/booking-agent-dashboard.html', username=username)
 
 class ViewFlightsForm(FlaskForm):
     def __init__(self, *args, **kwargs):
@@ -186,9 +206,45 @@ def view_flights(username):
                 flights = cursor.fetchall()
                 conn.commit()
                 cursor.close()
-                return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+                return render_template('view-flights.html', flights=flights,form = form,username = username)
             
 
+class CreateFlightForm(Form):
+    flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    departure_airport = StringField('Departure Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    departure_time = DateField('Departure Time', [validators.InputRequired()])
+
+    arrival_airport = StringField('Arrival Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    arrival_time = DateField('Arrival Time', [validators.InputRequired()])
+
+    price = StringField('Price', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    status = StringField('Status', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    airplane_id = StringField('Airplane ID', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    submit = SubmitField('Submit')
+
+
+    # Define a route to create new flights
+@app.route('/create_flight', methods=['GET', 'POST'])
+def create_flight():
+        # Check if the user has the necessary permission
+        if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+
+        # Handle the form submission to create a new flight
+        if request.method == 'POST':
+            # Process the form data and create a new flight
+            # ...
+
+            return redirect(url_for('view_flights'))
+
+        return render_template('create_flight.html')
 
 class changeflightstatus(Form):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
@@ -606,7 +662,7 @@ def register_customer():
         return "Customer registered successfully!"
 
 
-    return render_template('customer-registration.html', form=form)
+    return render_template('customer/customer-registration.html', form=form)
 
 class BookingAgentRegisterForm(Form):
     

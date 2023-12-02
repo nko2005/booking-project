@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+    <
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <
+<title>Customer Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/customer-dashboard-style.css') }}">
+
+</he
+</head>
+<body>
+    <header>
+        <h1>Welcome, {{ username }}!</h1>
+    
+    </
+</header>
+
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('customer_dashboard') }}">Home</a></li>
+            <li><a href="{{ url_for('view_flights', username=username) }}">View My Flights</a></li>
+            
+        
+<li><a href="{{ url_for('purchase_tickets') }}">Purchase Tickets</a></li>
+            
+     
+<li><a href="{{ url_for('search_flights') }}">Search for Flights</a></li>
+            <li><a href="{{ url_for('track_spending') }}">Track My Spending</a></li>
+            
+            
+<li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    
+  
+</nav>
+
+    <main>
+        <!-- Placeholder for dashboard content -->
+        <h2>Dashboard Content Goes Here</h2>
+    </main>
+
+    
+
+    <
+<footer>
+        
+       
+<p>&copy; 2022 Customer Dashboard. All rights reserved.</p>
+    </footer>
+</body>
+</html>
