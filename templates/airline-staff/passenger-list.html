@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Passenger List</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/passenger-list-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <h1>Passenger List</h1>
+    <div id ="search">
+        <form method="POST">
+            {{ search_form.hidden_tag() }}
+            {{ search_form.flight_num.label }} {{ search_form.flight_num() }}
+            {{ search_form.submit() }}
+        </form>
+    </div>
+    
+    <div id = "content">
+    <table id = "output">
+        
+            <tr>
+                <th>Ticket ID</th>
+                <th>Flight Number</th>
+                <th>Email</th>
+                <th>Booking Agent Email</th>
+            </tr>
+            {% for passenger in passengers %}
+            <tr>
+              <td>{{ passenger.Ticket_ID }}</td>
+              <td>{{ passenger.Flight_Number }}</td>
+              <td>{{ passenger.Customer_Email }}</td>
+              <td>{{ passenger.Booking_Agent_Email }}</td>  
+            </tr>
+            {% endfor %}
+    
+    </table>
+</div>
+</body>
+</html>

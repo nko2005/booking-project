@@ -23,8 +23,8 @@
 # Edit at https://www.gitignore.io/?templates=vim,osx,node,windows
 ##db stuff##
 **Booking database inserts.sql
-**booking_structure.sql
-**new_booking_inserts.sql
+
+
 ###my personal notes###
 **notes.txt
 ##windows virtual environment##

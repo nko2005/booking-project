@@ -187,6 +187,7 @@ VALUES
 CREATE TABLE `ticket` (
   `id` int(11) NOT NULL,
   `Ticket_ID` varchar(8) NOT NULL,
+  `Airline_name` varchar(20) DEFAULT NULL,
   `Flight_Number` varchar(8) NOT NULL,
   `Customer_Email` varchar(25) NOT NULL,
   `Booking_Agent_Email` varchar(25) DEFAULT NULL
@@ -229,7 +230,7 @@ ALTER TABLE `airplane`
 --
 ALTER TABLE `airport`
   ADD PRIMARY KEY (`Airport_name`),
-  ADD INDEX idx_city (City);
+  
 
 --
 -- Indexes for table `booking_agent`

@@ -1,0 +1,36 @@
+<!-- FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/templates/customer-registration.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Agent Registration Page</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/add-airplane-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+
+<body>
+    <div id="navbar" align="left">
+        <div id="nav-elements">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+    <div id="title" align="center">
+        Airport Registration
+    </div>
+
+    <div id="content" align="center">
+        <form method="POST" style="text-align: center;">
+            {{ form.hidden_tag() }}
+            <input type="text" name="airplane_id" placeholder="Airplane ID">
+            {% for error in form.airplane_id.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+            <div id="input-container" align="center">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
