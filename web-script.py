@@ -206,12 +206,11 @@ def view_flights(username):
                 flights = cursor.fetchall()
                 conn.commit()
                 cursor.close()
-<<<<<<< HEAD
                 return render_template('view-flights.html', flights=flights,form = form,username = username)
 
 # New route for purchasing tickets
 @app.route('/login/purchase_tickets')
-def purchase_tickets():
+def purchase_tickets(username):
     # Implement logic to allow the customer to purchase tickets
     # You may need to integrate with a payment gateway and update the database accordingly
 
@@ -219,7 +218,7 @@ def purchase_tickets():
 
 # New route for searching flights
 @app.route('/login/search_flights')
-def search_flights():
+def search_flights(username):
     # Implement logic to search for upcoming flights based on user input
     # You may need to query your database for available flights
 
@@ -227,7 +226,7 @@ def search_flights():
 
 # New route for tracking spending
 @app.route('/login/track_spending')
-def track_spending():
+def track_spending(username):
     # Implement logic to track spending, retrieve and display spending data
     # You may need to query your database for spending information
 
@@ -239,10 +238,9 @@ def logout():
     # Clear the session and redirect to a goodbye or login page
     session.clear()
     return render_template('goodbye.html')           
-=======
-                return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+
             
->>>>>>> 6741fad500f9d154a1f880eed7e6ae0c3508872c
+
 
 
 class changeflightstatus(Form):
