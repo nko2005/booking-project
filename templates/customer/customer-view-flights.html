@@ -1,0 +1,71 @@
+<!-- FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/templates/view-flights.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Flights</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/customer-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <h1>View Flights</h1>
+    <div class="search-bar">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <label for="depart_from">Depart From:</label>
+            <select id="depart_from" name="depart_from">
+                <!-- You'll need to generate these options dynamically in your server-side code -->
+                
+                {% for city in form.depart_from.choices %}
+                <option value="{{ city[0] }}">{{ city[1] }}</option>
+                {% endfor %}
+            </select>
+        
+            <label for="arrive_at">Arrive At:</label>
+            <select id="arrive_at" name="arrive_at">
+                <!-- You'll need to generate these options dynamically in your server-side code -->
+                {% for city in form.arrive_at.choices %}
+                <option value="{{ city[0] }}">{{ city[1] }}</option>
+                {% endfor %}
+            </select>
+        
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" required>
+        
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" required>
+        
+            <input type="submit" value="Submit">
+        </form>
+       
+    </div>
+    <div id = "content">
+    <table id="output">
+        <tr>
+            <th>Flight Number</th>
+            <th>Airline Name</th>
+            <th>Departure Airport</th>
+            <th>Arrival Airport</th>
+            <th>Departure Time</th>
+            <th>Arrival Time</th>
+            <th>Airplane ID</th>
+            <th>Price</th>
+            <th>Status</th>
+        </tr>
+        {% for flight in flights %}
+        <tr>
+            <td>{{ flight.Flight_number }}</td>
+            <td>{{ flight.Airline_name }}</td>
+            <td>{{ flight.Departure_Airport }}</td>
+            <td>{{ flight.Arrival_Airport }}</td>
+            <td>{{ flight.Departure_hr }}:{{ flight.Departure_min }}</td>
+            <td>{{ flight.Arrival_hr }}:{{ flight.Arrival_min }}</td>
+            <td>{{ flight.Airplane_ID }}</td>
+            <td>{{ flight.Price }}</td>
+            <td class="{{ 'text-green' if flight.Status == 'Upcoming' else 'text-red' if flight.Status == 'Cancelled' else 'text-yellow' if flight.Status == 'Delayed' else '' }}">{{ flight.Status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>
