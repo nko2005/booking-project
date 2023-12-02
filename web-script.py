@@ -4,7 +4,7 @@ Created on Sat Oct 28 20:24:24 2023 by Nawaf
 
 This script is a Flask web application that handles user login functionality.
 """
-#import necessary libraries
+#import necessary libraries test
 from flask import Flask, render_template, request, url_for, redirect, session
 from flask_wtf import FlaskForm 
 import mysql.connector 
