@@ -24,13 +24,18 @@ conn = mysql.connector.connect(host='localhost',
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
-
-    email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
+    agentID= StringField('Agent ID', [validators.Optional(),validators.Length(min=4, max=25)])
+    email = StringField('Email', [validators.Optional()])
     
     password = PasswordField('Password', [validators.InputRequired()])
   
     #Hashes the password entered by the user. This is done before querying the database to check if the user exists.
     def check_password(self,hashedpassword):
+        print("what i entered",self.password.data)
+        print("what is in db hashed:",hashedpassword)
+        
+
+        print(check_password_hash(hashedpassword, self.password.data)) 
         return check_password_hash(hashedpassword, self.password.data)  
 #Define a route to login function
 @app.route('/', methods=['GET', 'POST'])
@@ -48,28 +53,30 @@ def login():
     """
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
+        print(form.email.data)
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""(SELECT username,password,'airline_staff' as user_type FROM airline_staff WHERE username = %s) 
-        UNION 
-        (SELECT email,password,'customer' as user_type FROM customer WHERE email = %s) 
-        UNION 
-        (SELECT booking_agent_id,password, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s) """,
-        (form.username.data,
-         form.email.data,
-         form.username.data))
-        #pur sql statements here
+        cursor.execute("""SELECT username,password,'airline_staff' as user_type FROM airline_staff WHERE username = %s""",(form.username.data,))
         user = cursor.fetchone()#receive from database
+        if user is None:
+            cursor.execute("""SELECT email,password,'customer' as user_type FROM customer WHERE email = %s""",(form.email.data,))
+            user = cursor.fetchone()
+        if user is None:
+         #receive from database
+            cursor.execute("""SELECT booking_agent_id,password, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s """,(form.agentID.data,))
+            user = cursor.fetchone()
+
         print(user)  # Print the user information
         # Check if the user exists and the password is correct
         conn.commit()
         cursor.close()
-        if user and ('username' in user or 'email' in user) and form.check_password(user['password']):
+        if user and ('username' in user or 'email' in user or "booking_agent_id" in user ) and form.check_password(user['password']):
             # If the user exists and the password is correct, store the username in a session
             if form.username.data is not None:
               session['username'] = form.username.data
-            else:
+            elif form.email.data is not None:
                 session['username'] = form.email.data
-                
+            elif form.agentID.data is not None:
+                session['username'] = form.agentID.data
             session['user_type'] = user['user_type']
             
             if user['user_type'] == 'airline_staff':
@@ -86,10 +93,9 @@ def login():
             elif user['user_type'] == 'customer':
                 # Serve the customer dashboard
             
-                userinfo = cursor.fetchone()
+                
                 session["permission"] = "user"
-                conn.commit()
-                cursor.close()
+                
                 return redirect(url_for('customer_dashboard'))
 
             elif user['user_type'] == 'booking_agent':
@@ -129,6 +135,8 @@ def airline_staff_dashboard():
 def customer_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
+    if session.get('permission') != 'user':
+        return "Unauthorized", 403
 
     return render_template('customer/customer-dashboard.html', username=username)
 
@@ -623,7 +631,7 @@ class CustomerRegisterForm(Form):
         :param password: The password to be hashed.
         :return: The hashed password.
         """
-        return generate_password_hash(password)
+        return generate_password_hash(password,method='scrypt')
 
 
 @app.route('/register/register_customer', methods=['GET', 'POST'])
