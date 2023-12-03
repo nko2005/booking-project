@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Agents</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/view-agents-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <h1>View Agents</h1>
+    <div class="search-bar">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <input type="text" name="search" placeholder="Search Agent ID">
+            {% for error in form.search.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+            <br><br>
+            <input type="submit" value="Search">
+
+        </form>
+       
+    </div>
+    <div id = "content">
+    <table id="output">
+        <tr>
+            <th> Booking Agent ID</th>
+            <th>Airline Name</th>
+            <th>Agent Email</th>
+            <th>Commission</th>
+        
+        </tr>
+        {% for agent in agents %}
+        <tr>
+            <td>{{ agent.Booking_agent_ID }}</td>
+            <td>{{ agent.Airline_Name }}</td>
+            <td>{{ agent.Email }}</td>
+            <td>{{agent.commission}}</td>
+
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>

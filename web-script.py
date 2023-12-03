@@ -21,7 +21,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3306)
+                               database='booking', port = 3307)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -188,37 +188,56 @@ def view_flights(username):
        
         print(datetime.now().date())
        
-        if form.validate_on_submit() and request.method == 'POST':
-           
-                if form.start_date.data > form.end_date.data:
+        if request.method == 'POST':
+                if form.start_date.data is None or form.end_date.data is None:  
+                     start_date = datetime.now().date()
+                     end_date = start_date + timedelta(days=30) 
+                     form.start_date.data = start_date
+                     form.end_date.data = end_date
+
+                
+                if form.start_date.data is not None and  form.end_date.data is not None and form.start_date.data > form.end_date.data:
                     return "Invalid date range"
+                
+                if form.validate_on_submit(): 
+                        start_date = form.start_date.data
+                        end_date = form.end_date.data
+
+                        
+                        cursor = conn.cursor(dictionary=True)
+                        cursor.execute("(SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s  AND Departure_Airport = %s AND Arrival_Airport = %s)", (session.get('airline'), start_date,end_date,form.depart_from.data,form.arrive_at.data))
+                        
+                        flights = cursor.fetchall()
+                        conn.commit()
+                        cursor.close()
+                    
+                        return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
                 else:
-
-                    
-
-                    start_date = form.start_date.data
-                    end_date = form.end_date.data
-                    
+                
+                    start_date = datetime.now().date()
+                    end_date = start_date + timedelta(days=30)
+                    status = 'upcoming'
+                        
                     cursor = conn.cursor(dictionary=True)
-                    cursor.execute("(SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND arrival_date = %s AND Departure_Airport = %s AND Arrival_Airport = %s)", (session.get('airline'), start_date,end_date,end_date,form.depart_from.data,form.arrive_at.data))
-                    
+                    cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND Status = %s", (session.get('airline'), start_date, end_date,status))
                     flights = cursor.fetchall()
                     conn.commit()
                     cursor.close()
-                
                     return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
-        else:
-                
-                start_date = datetime.now().date()
-                end_date = start_date + timedelta(days=30)
-                status = 'upcoming'
+        
+        start_date = datetime.now().date()
+        end_date = start_date + timedelta(days=30)
+        status = 'upcoming'
                     
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND Status = %s", (session.get('airline'), start_date, end_date,status))
-                flights = cursor.fetchall()
-                conn.commit()
-                cursor.close()
-                return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND Status = %s", (session.get('airline'), start_date, end_date,status))
+        flights = cursor.fetchall()
+        conn.commit()
+        cursor.close()
+        return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+        
+        
+        
      
 class ChangeStatusForm(FlaskForm):
     status = RadioField('Status', choices=[('upcoming','Upcoming'), ('delayed','Delayed'), ('cancelled','Cancelled')], validators=[DataRequired()])
@@ -381,6 +400,17 @@ def register_booking_agent(username):
 
     return render_template('booking-agent/booking-agent-reg.html', form=form)
 
+
+@app.route('/login/airline_staff_dashboard/agent_actions/view_agents/user/<username>', methods=['GET', 'POST'])
+def view_agents(username):
+    if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""SELECT * FROM booking_agent,ticket WHERE airline_name = %s AND booking_agent.Email = ticket""", (session.get('airline'),))
+    agents = cursor.fetchall()
+    conn.commit()
+    cursor.close()
+    return render_template('airline-staff/view-agents.html', agents=agents,username=username)
 
 
 
