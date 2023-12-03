@@ -740,7 +740,7 @@ def purchase_tickets():
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
-    
+        
     return render_template('customer/purchase-tickets.html', username=username)
 
 # New route for searching flights
@@ -787,11 +787,11 @@ class CustomerViewFlights(FlaskForm):
     Submit = SubmitField('Submit')
 
 @app.route('/login/customer_dashboard/customer_view_flights/user/<username>', methods=['GET','POST'])
-def customer_view_flights(username):
+def customer_view_flights():
         username = session.get('username')
 
         # Check if the user has the necessary permission
-        if not session.get('permission') == 'user':
+        if session.get('permission') is not 'user':
             return "Unauthorized", 403
         form = CustomerViewFlights()
        
