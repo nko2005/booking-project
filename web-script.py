@@ -13,6 +13,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash 
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
 from datetime import datetime, timedelta
+import ast
 # Initialize the app from Flask
 app = Flask(__name__)#forms for flask
 
@@ -20,7 +21,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3306)
+                               database='booking', port = 3307)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -86,8 +87,14 @@ def login():
                 userinfo = cursor.fetchone()
                 session["airline"]= userinfo['airline_name']
                 session["permission"] = userinfo['permission']
+
+        
+
                 conn.commit()
                 cursor.close()
+
+
+
                 return redirect(url_for('airline_staff_dashboard'))
             
             elif user['user_type'] == 'customer':
@@ -122,7 +129,7 @@ def logout():
 
 
 
-@app.route('/login/airline_staff_dashboard')
+@app.route('/login/airline_staff_dashboard', methods=['GET', 'POST'])
 def airline_staff_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
@@ -140,7 +147,7 @@ def customer_dashboard():
 
     return render_template('customer/customer-dashboard.html', username=username)
 
-@app.route('/login/booking_agent_dashboard')
+@app.route('/login/booking_agent_dashboard', methods=['GET', 'POST'])
 def booking_agent_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
@@ -211,65 +218,36 @@ def view_flights(username):
                 flights = cursor.fetchall()
                 conn.commit()
                 cursor.close()
-                return render_template('view-flights.html', flights=flights,form = form,username = username)
-            
-
-class CreateFlightForm(Form):
-    flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
-    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    departure_airport = StringField('Departure Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    departure_time = DateField('Departure Time', [validators.InputRequired()])
-
-    arrival_airport = StringField('Arrival Airport', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    arrival_time = DateField('Arrival Time', [validators.InputRequired()])
-
-    price = StringField('Price', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    status = StringField('Status', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    airplane_id = StringField('Airplane ID', [validators.Length(min=1, max=25),validators.InputRequired()])
-
+                return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+     
+class ChangeStatusForm(FlaskForm):
+    status = RadioField('Status', choices=[('upcoming','Upcoming'), ('delayed','Delayed'), ('cancelled','Cancelled')], validators=[DataRequired()])
     submit = SubmitField('Submit')
-
-
-    # Define a route to create new flights
-@app.route('/create_flight', methods=['GET', 'POST'])
-def create_flight():
-        # Check if the user has the necessary permission
-        if not session.get('permission') == 'admin':
-            return "Unauthorized", 403
-
-        # Handle the form submission to create a new flight
-        if request.method == 'POST':
-            # Process the form data and create a new flight
-            # ...
-
-            return redirect(url_for('view_flights'))
-
-        return render_template('create_flight.html')
-
-class changeflightstatus(Form):
-    flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
-    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
-    status = RadioField('Status', [validators.Length(min=1, max=25),validators.InputRequired()])
     # Define a route to change the status of flights
-@app.route('/change_flight_status', methods=['GET', 'POST'])
-def change_flight_status():
+@app.route('/change_flight_status/<flight_num>', methods=['GET', 'POST'])
+def change_flight_status(flight_num):
         # Check if the user has the necessary permission
         if not session.get('permission') == 'admin':
             return "Unauthorized", 403
-
+        print(flight_num)
+        form = ChangeStatusForm()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM flight WHERE flight_number = %s", (flight_num,))
+        flight = cursor.fetchone()
+        print(flight)
         # Handle the form submission to change the flight status
         if request.method == 'POST':
             # Process the form data and update the flight status
             # ...
+            new_status = form.status.data
+            cursor.execute("UPDATE flight SET status = %s WHERE flight_number = %s", (new_status, flight_num))
+            conn.commit()
+            cursor.close()
 
-            return redirect(url_for('view_flights'))
-
-        return render_template('change_flight_status.html')
+            return redirect(url_for('view_flights', username=session.get('username')))
+        conn.commit()
+        cursor.close()
+        return render_template('airline-staff/change-flight-status.html', flight=flight,form = form)
 
 class SearchPassengerForm(FlaskForm):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
@@ -305,6 +283,124 @@ def passenger_list(username):
         return render_template('airline-staff/passenger-list.html',search_form=search_form,username=username, passengers=passengers)
 
 
+
+
+
+class AgentRadioForm(FlaskForm):
+    action = RadioField('Select Action:', choices=[('view','View Agents'), ('register','Register Agent')], validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+@app.route('/login/airline_staff_dashboard/agent_actions/user/<username>', methods=['GET', 'POST'])
+def agent_actions(username):
+     
+
+    if not session.get('permission') == 'admin':
+                return "Unauthorized", 403
+    if username is None:
+            return "Unauthorized", 403
+    form = AgentRadioForm()
+    if form.validate_on_submit() and request.method == 'POST':
+            print("we are here everyoen")
+            if form.action.data == 'view':
+                return redirect(url_for('view_agents',username= username))
+            elif form.action.data == 'register':
+
+                return redirect(url_for('register_booking_agent',username= username))
+
+    return render_template('airline-staff/agent-actions.html', form=form,username=username)
+
+class BookingAgentRegisterForm(Form):
+    
+    booking_agent_id = StringField('Booking Agent ID', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    email = StringField('Email', [validators.Email(message='Invalid email'), validators.Optional()])
+
+    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
+
+    email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
+
+    password = PasswordField('Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+    confirm_password = PasswordField('Confirm Password', [
+        validators.InputRequired(),
+        validators.Length(min=8),
+        validators.Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
+        )
+    ])
+
+
+    @staticmethod
+    def hash_password(password):
+        """
+        Hashes the given password using the generate_password_hash function from werkzeug.security.
+
+        :param password: The password to be hashed.
+        :return: The hashed password.
+        """
+        return generate_password_hash(password)
+@app.route('/login/airline_staff_dashboard/agent_actions/register_booking_agent/user/<username>', methods=['GET','POST'])
+def register_booking_agent(username):
+
+    if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+    
+    form = BookingAgentRegisterForm(request.form)
+    if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
+        cursor = conn.cursor()
+        cursor.execute("select * from booking_agent where booking_agent_id = %s", (form.booking_agent_id.data,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return "User already exists"
+        else:
+            cursor.execute(
+                "INSERT INTO booking_agent(booking_agent_id, airline_name, email, password) VALUES (%s, %s, %s, %s)",
+                (
+                    form.booking_agent_id.data,
+                    form.airline_name.data,
+                    form.email.data,
+                    form.hash_password(form.password.data),
+                    
+                )
+            )
+        conn.commit()
+        cursor.close()
+        
+        print("entered")
+        return "Booking Agent registered successfully!"
+
+
+    return render_template('booking-agent/booking-agent-reg.html', form=form)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class AirRadioForm(FlaskForm):
     asset = RadioField('Select Asset:', choices=[('airport','Airport'), ('flight','Flight'), ('airplane','Airplane')], validators=[DataRequired()])
     submit = SubmitField('Submit')
@@ -321,31 +417,33 @@ def register_air(username):
         if air_form.asset.data == 'airport':
             return redirect(url_for('add_airport',username= username))
         elif air_form.asset.data == 'flight':
-            return redirect(url_for('create_flight',username= username))
+            return redirect(url_for('add_flight',username= username))
         elif air_form.asset.data == 'airplane':
             return redirect(url_for('add_airplane',username= username))
     return render_template('airline-staff/register-air.html', air_form=air_form,username=username)
 
-class AddFlight(FlaskForm):
+class AddFlightForm(FlaskForm):
     def __init__(self, *args, **kwargs):
-        super(ViewFlightsForm, self).__init__(*args, **kwargs)
+        super(AddFlightForm, self).__init__(*args, **kwargs)
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT airport_name, city FROM airport")
         city_list = cursor.fetchall()
-        cursor.close()
-        conn.commit()
+        
     
         
-        city_choices = [(city['airport_name'], city['airport_name'] + ', ' + city['city']) for city in city_list]
+        city_choices = [((city['airport_name'],city['city']), city['airport_name'] + ', ' + city['city']) for city in city_list]
         city_choices.insert(0, ('', 'Select a city'))  # Add an empty choice at the beginning
         self.depart_from.choices = city_choices
         self.arrive_at.choices = city_choices
 
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT  Airplane_ID a FROM Airplane where airline_name = %s",(session.get('airline'),))
+       
+        cursor.execute("SELECT  Airplane_ID FROM Airplane where airline_name = %s",(session.get('airline'),))
 
         plane_list = cursor.fetchall()
-        self.airplane_id.choices = [(plane['Airplane_id'], plane['Airplane_id']) for plane in plane_list]
+      
+        plane_choices = [(plane['Airplane_ID'], plane['Airplane_ID']) for plane in plane_list]
+        self.airplane_id.choices = plane_choices
+        print("resulting:",self.airplane_id.choices)
         self.airplane_id.choices.insert(0, ('', 'Select a plane'))  # Add an empty choice at the beginning
         cursor.close()
         conn.commit()
@@ -353,10 +451,10 @@ class AddFlight(FlaskForm):
     Flight_number = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
 
     depart_from = SelectField('Depart From', validators=[validators.InputRequired()])
-    departure_date_time = DateTimeField('Start Date', default=datetime.now().date(), format='%Y-%m-%d',validators=[validators.Optional()])
+    departure_date_time = DateTimeField('Start Date', default=datetime.now(),validators=[validators.Optional()],format = '%Y-%m-%dT%H:%M')
     arrive_at = SelectField('Arrive At', validators=[validators.InputRequired()])
     
-    arrival_date_time = DateTimeField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d',validators=[validators.Optional()])
+    arrival_date_time = DateTimeField('End Date', default=(datetime.now() + timedelta(days=30)),validators=[validators.Optional()],format = '%Y-%m-%dT%H:%M')
 
     airplane_id = SelectField('Airplane ID', validators=[validators.InputRequired()])
 
@@ -364,50 +462,93 @@ class AddFlight(FlaskForm):
     
     Submit = SubmitField('Submit')
 
-@app.route('/login/airline_staff_dashboard/register_air/create_flight/user/<username>', methods=['GET','POST'])
+@app.route('/login/airline_staff_dashboard/register_air/add_flight/user/<username>', methods=['GET','POST'])
 def add_flight(username):
 
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
-    form = AddFlight()
-    if request.method == 'POST' and form.validate():
-        print("i go sneakin sneakin sneakin")
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM flight WHERE flight_number = %s AND airline_name = %s",
-            (form.Flight_number.data,session.get('airline'))
-        )
-        existing_user = cursor.fetchone()
-        if existing_user:
-            return "Flight already exists"
-        else:
+    form = AddFlightForm(request.form)
+    print("Departure date and time:", form.departure_date_time.data)
+    print("Arrival date and time:", form.arrival_date_time.data)
+
+    if request.method == 'POST':
+        arrival_date_time = form.arrival_date_time.data = datetime.strptime(request.form['arrival_date_time'], '%Y-%m-%dT%H:%M')
+        departure_date_time = form.departure_date_time.data = datetime.strptime(request.form['departure_date_time'], '%Y-%m-%dT%H:%M')  
+
+        if arrival_date_time.date() < datetime.now().date() or departure_date_time.date() < datetime.now().date():
+            return "Date cannot be before today"
+
+        if form.validate(): 
+            cursor = conn.cursor()
             cursor.execute(
-                """INSERT INTO flight(flight_number,airline_name,Arrival_airport,
-                Arrival_City,
-                Arrival_Date,Departure_Airport,Departure_city,
-                Departure_date,
-                Departure_hr,
-                Departure_min,
-                Arrival_hr,
-                Arrival_min,
-                Airplane_ID,
-                price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    form.Flight_number.data,
-                    session.get('airline'),
-                    form.depart_from.data,
-                    form.departure_date_time.data,
-                    form.arrive_at.data,
-                    form.arrival_date_time.data,
-                    form.airplane_id.data,
-                    form.price.data
-                )
+                "SELECT * FROM flight WHERE flight_number = %s AND airline_name = %s",
+                (form.Flight_number.data,session.get('airline'))
             )
-            conn.commit()
-            cursor.close()
-            return "Flight added successfully!"
-    print(form.errors)
+            existing_flight = cursor.fetchone()
+            if existing_flight:
+                return "Flight already exists"
+            else:
+              
+                print("the tuple",form.arrive_at.data)
+               
+                arrival_data = ast.literal_eval(form.arrive_at.data)
+                arrival_airport = arrival_data[0]
+                arrival_city = arrival_data[1]
+                #arrival_airport = arrival_airport.strip()
+
+
+                departure_data = ast.literal_eval(form.depart_from.data)
+                departure_airport = departure_data[0]
+                departure_city = departure_data[1]
+                #departure_airport = departure_airport.strip()
+                print("Departure airport:", departure_airport)
+                print("Arrival airport:", arrival_airport)
+
+                dep_hour, dep_minute = map(int, form.departure_date_time.data.strftime('%H:%M').split(':'))
+                arr_hour, arr_minute = map(int, form.arrival_date_time.data.strftime('%H:%M').split(':'))
+
+                cursor.execute(
+                    """INSERT INTO flight(
+                    flight_number,
+                    airline_name,
+                    Arrival_Airport,
+                    Arrival_City,
+                    Arrival_Date,
+                    Departure_Airport,
+                    Departure_city,
+                    Departure_date,
+                    Departure_hr,
+                    Departure_min,
+                    Arrival_hr,
+                    Arrival_min,
+                    Airplane_ID,
+                    price,
+                    status
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,"Upcoming")
+                    """,
+                    (
+                        form.Flight_number.data,
+                        session.get('airline'),
+                        arrival_airport,
+                        arrival_city,
+                        arrival_date_time.date(),
+                        departure_airport,
+                        departure_city,
+                        departure_date_time.date(),
+                        dep_hour,
+                        dep_minute,
+                        arr_hour,
+                        arr_minute,
+                        form.airplane_id.data,
+                        form.price.data
+                    )
+                )
+                conn.commit()
+                cursor.close()
+                return "Flight added successfully!"
+        print(form.errors)
+
+    return render_template('airline-staff/add-flight.html', form=form,username=username)
 
 
 
@@ -493,7 +634,7 @@ def add_airport(username):
 
 
 class RoleForm(FlaskForm):
-    role = RadioField('Role', choices=[('customer','Customer'), ('airline_staff','Airline Staff'), ('booking_agent','Booking Agent')], validators=[DataRequired()])
+    role = RadioField('Role', choices=[('customer','Customer'), ('airline_staff','Airline Staff')], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -504,8 +645,6 @@ def register():
             return redirect(url_for('register_customer'))
         elif form.role.data == 'airline_staff':
             return redirect(url_for('register_airline_staff'))
-        elif form.role.data == 'booking_agent':
-            return redirect(url_for('register_booking_agent'))
     return render_template('main-reg.html', form=form)
 
 
@@ -665,72 +804,6 @@ def register_customer():
 
     return render_template('customer/customer-registration.html', form=form)
 
-class BookingAgentRegisterForm(Form):
-    
-    booking_agent_id = StringField('Booking Agent ID', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    email = StringField('Email', [validators.Email(message='Invalid email'), validators.Optional()])
-
-    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
-
-    email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
-
-    password = PasswordField('Password', [
-        validators.InputRequired(),
-        validators.Length(min=8),
-        validators.Regexp(
-            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
-            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
-        )
-    ])
-
-    confirm_password = PasswordField('Confirm Password', [
-        validators.InputRequired(),
-        validators.Length(min=8),
-        validators.Regexp(
-            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
-            message='Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters'
-        )
-    ])
-
-
-    @staticmethod
-    def hash_password(password):
-        """
-        Hashes the given password using the generate_password_hash function from werkzeug.security.
-
-        :param password: The password to be hashed.
-        :return: The hashed password.
-        """
-        return generate_password_hash(password)
-@app.route('/register/register_booking_agent', methods=['GET', 'POST'])
-def register_booking_agent():
-    form = BookingAgentRegisterForm(request.form)
-    if request.method == 'POST' and form.validate() and form.password.data == form.confirm_password.data:
-        cursor = conn.cursor()
-        cursor.execute("select * from booking_agent where booking_agent_id = %s", (form.booking_agent_id.data,))
-        existing_user = cursor.fetchone()
-        if existing_user:
-            return "User already exists"
-        else:
-            cursor.execute(
-                "INSERT INTO booking_agent(booking_agent_id, airline_name, email, password) VALUES (%s, %s, %s, %s)",
-                (
-                    form.booking_agent_id.data,
-                    form.airline_name.data,
-                    form.email.data,
-                    form.hash_password(form.password.data),
-                    
-                )
-            )
-        conn.commit()
-        cursor.close()
-        
-        print("entered")
-        return "Booking Agent registered successfully!"
-
-
-    return render_template('booking-agent-reg.html', form=form)
 
 
 @app.route('/login/purchase_tickets')

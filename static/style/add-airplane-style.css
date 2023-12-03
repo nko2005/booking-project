@@ -1,5 +1,33 @@
 /* FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/static/style/add-airport-style.css */
 
+input[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: auto;
+}
+
+input[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+input[type="button"] {
+  width: 300px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+ 
+}
+input[type="button"]:hover {
+  background-color: #45a049;
+}
 /* Navbar styles */
 #navbar{
 

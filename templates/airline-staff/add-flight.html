@@ -1,0 +1,63 @@
+<!-- FILEPATH: /c:/Users/Nawaf/OneDrive/Documents/GitHub/booking-project/templates/airline-staff/create_flight.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Flight</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/add-flight-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <div id="title" align="center">
+    <h1>Create Flight</h1>
+</div>
+
+    <div id="content" align="center"> 
+    <form method="POST" action="/login/airline_staff_dashboard/register_air/create_flight/user/{{ username }}">
+        {{ form.csrf_token }}
+        {{ form.hidden_tag() }}
+        <label for="Flight_number">Flight Number:</label>
+      
+        <input type="text" id="Flight_number" name="Flight_number">
+        {% for error in form.Flight_number.errors %}
+        <span class="error">{{ error }}</span>
+        {% endfor %}
+
+            <label for="depart_from">Depart From:</label>
+            <select id="depart_from" name="depart_from">
+                <!-- You'll need to generate these options dynamically in your server-side code -->
+                
+                {% for city in form.depart_from.choices %}
+                <option value="{{ city[0] }}">{{ city[1] }}</option>
+                {% endfor %}
+            </select><br><br>
+        
+            <label for="arrive_at">Arrive At:</label>
+            <select id="arrive_at" name="arrive_at">
+                <!-- You'll need to generate these options dynamically in your server-side code -->
+                {% for city in form.arrive_at.choices %}
+                <option value="{{ city[0] }}">{{ city[1] }}</option>
+                {% endfor %}
+            </select><br><br>
+
+
+
+
+
+        <label for="departure_date_time">Departure Date and Time:</label>
+        <input type="datetime-local" id="departure_date_time" name="departure_date_time" required><br><br>
+        <label for="arrival_date_time">Arrival Date and Time:</label>
+        <input type="datetime-local" id="arrival_date_time" name="arrival_date_time" required><br><br>
+        <label for="airplane_id">Airplane ID:</label> 
+        <select id="airplane_id" name="airplane_id">
+
+            {% for plane in form.airplane_id.choices %}
+                <option value="{{ plane[0] }}">{{ plane[1] }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" required><br><br>
+        <input type="submit" value="Add Flight">
+    </form>
+    </div>
+</body>
+</html>
