@@ -32,17 +32,17 @@
             <th>Status</th>
             <th>Edit</th>
         </tr>
-        {% for flight in flights %}
+        {% for ticket_flight in ticket_flights %}
         <tr>
-            <td>{{ flight.ticket_ID }}</td>
-            <td>{{ flight.Flight_number }}</td>
-            <td>{{ flight.Airline_name }}</td>
-            <td>{{ flight.Departure_Airport }}</td>
-            <td>{{ flight.Arrival_Airport }}</td>
-            <td>{{ flight.Arrival_City }}</td>
-            <td>{{ flight.Departure_hr }}:{{ flight.Departure_min }}</td>
-            <td>{{ flight.Arrival_hr }}:{{ flight.Arrival_min }}</td>
-            <td>{{ flight.Price }}</td>
+            <td>{{ ticket_flight.ticket_ID }}</td>
+            <td>{{ ticket_flight.number }}</td>
+            <td>{{ ticket_flight.Airline_name }}</td>
+            <td>{{ ticket_flight.Departure_Airport }}</td>
+            <td>{{ ticket_flight.Arrival_Airport }}</td>
+            <td>{{ ticket_flight.Arrival_City }}</td>
+            <td>{{ ticket_flight.Departure_hr }}:{{ ticket_flight.Departure_min }}</td>
+            <td>{{ ticket_flight.Arrival_hr }}:{{ ticket_flight.Arrival_min }}</td>
+            <td>{{ ticket_flight.Price }}</td>
             <td class="{{ 'text-green' if flight.Status == 'Upcoming' else 'text-red' if flight.Status == 'Cancelled' else 'text-yellow' if flight.Status == 'Delayed' else '' }}">{{ flight.Status }}</td>
             <td><a href="{{url_for('change_flight_status',flight_num=flight.Flight_number)}}">Edit</a></td>
         </tr>
