@@ -883,12 +883,10 @@ def search_flights():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT * FROM flight
-            WHERE airline_name = %s
-            AND departure_date BETWEEN %s AND %s
-            AND arrival_date >= %s
+            WHERE departure_date BETWEEN %s AND %s
             AND Departure_Airport = %s
             AND Arrival_Airport = %s
-        """)
+        """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
 
         flights = cursor.fetchall()
         conn.commit()
@@ -904,10 +902,10 @@ def search_flights():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT * FROM flight
-            WHERE airline_name = %s
-            AND departure_date BETWEEN %s AND %s
-            AND Status = %s
-        """)
+            WHERE departure_date BETWEEN %s AND %s
+            AND Departure_Airport = %s
+            AND Arrival_Airport = %s
+        """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
 
         flights = cursor.fetchall()
         conn.commit()
