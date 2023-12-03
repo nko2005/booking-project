@@ -15,6 +15,8 @@ from wtforms.validators import DataRequired, Email, Length, InputRequired, Regex
 from datetime import datetime, timedelta
 import ast
 import uuid
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # Initialize the app from Flask
 app = Flask(__name__)#forms for flask
@@ -23,7 +25,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3306)
+                               database='booking', port = 3307)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -990,42 +992,50 @@ def track_spending():
     # Implement logic to track spending, retrieve and display spending data
     # You may need to query your database for spending information
     username = session.get('username')
+    print(username)
     if session.get('permission') != 'user':
         return "Unauthorized", 403
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
     SELECT 
-        DATE_FORMAT(Purchase_date, '%Y-%m') AS month, 
-        SUM(Price) AS total_spent
+        DATE_FORMAT(Ticket.Purchase_date, '%Y-%m') AS month, 
+        SUM(Flight.Price) AS total_spent
     FROM 
-        ticket
+        Ticket,Flight
     WHERE 
-        Customer_Email = %s
+        Ticket.Customer_Email = %s and Flight.Flight_number = Ticket.Flight_Number
     GROUP BY 
         month
     ORDER BY 
         month
     """, (username,))
 
-    spendings = cursor.fetchall()
-    print(spendings)
-    months = [row['month'] for row in spendings]
-    totals = [row['total_spent'] for row in spendings]
+    monthly_spendings = cursor.fetchall()
+    cursor.execute("""
+    SELECT 
+        SUM(Flight.Price) AS total_spent
+    FROM 
+        Ticket
+    JOIN 
+        Flight ON Flight.Flight_number = Ticket.Flight_Number
+    WHERE 
+        Ticket.Customer_Email = %s
+    """, (username,))
+    total_spendings = cursor.fetchone()
+    
+
+    print(total_spendings)
+
+    months = [row['month'] for row in monthly_spendings]
+    totals = [row['total_spent'] for row in monthly_spendings]
     
     plt.bar(months, totals)
     plt.xlabel('Month')
     plt.ylabel('Total Spent')
     plt.title('Monthly Spendings')
-    plt.show()
-    
+    plt.savefig('static/images/customer/spendings.png')
 
-    plt.bar(months, totals)
-    plt.xlabel('Month')
-    plt.ylabel('Total Spent')
-    plt.title('Monthly Spendings')
-    plt.savefig('static/images/spendings.png')
-
-    return render_template('spendings.html', image_file='images/spendings.png')
+    return render_template('customer/track-spending.html', image_file='images/customer/spendings.png', total_spendings= total_spendings)
 
     
 
@@ -1033,8 +1043,7 @@ def track_spending():
 
 
 
-    
-    return render_template('customer/track-spending.html', username=username)
+
 
 
 

@@ -7,8 +7,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 </head>
 <body>
+    <div id="navbar">
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+    </div>
+    <div id = "container" align="center">
+
+    <div id = "title" align="center">
+        <h1>My Spendings</h1>
+    </div>
+    <br><br>
+    <br><br>
+
+    <div id ="content" >
+    <h2>Total Spending: {{ total_spendings.total_spent }}$</h2>
+    Here is your spendings for the last 6 months:
     
-    <img src="{{ url_for('static', filename=image_file) }}" alt="Monthly Spendings">
+    <img src="{{ url_for('static', filename='images/customer/spendings.png') }}" alt="Monthly Spendings">
+    </div>
+</div>
 
 </body>
 </html>
