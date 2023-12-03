@@ -172,12 +172,7 @@ def customer_dashboard():
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
-    form=CustomerViewFlights()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer WHERE Customer_Email=%s)",(username,))
-    ticket_flights = cursor.fetchall()
-    conn.commit()
-    cursor.close()
+    
 
     return render_template('customer/customer-dashboard.html', ticket_flights=ticket_flights,form=form, username=username)
 
