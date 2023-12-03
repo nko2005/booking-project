@@ -406,8 +406,14 @@ def view_agents(username):
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("""SELECT * FROM booking_agent,ticket WHERE airline_name = %s AND booking_agent.Email = ticket""", (session.get('airline'),))
+    cursor.execute("""
+                   SELECT booking_agent.Booking_agent_ID,booking_agent.Airline_Name,booking_agent.Email, SUM(ticket.Price *0.15) as commission
+                   FROM booking_agent,ticket 
+                   WHERE airline_name = %s AND booking_agent.Email = ticket.Booking_Agent_Email
+                   Group by booking_agent.Email
+                   Order by total_commission DESC""", (session.get('airline'),))
     agents = cursor.fetchall()
+    print(agents)
     conn.commit()
     cursor.close()
     return render_template('airline-staff/view-agents.html', agents=agents,username=username)
