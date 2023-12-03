@@ -24,12 +24,12 @@
             <th>Arrival Time</th>
             <th>Price</th>
             <th>Status</th>
-            <th>Edit</th>
+            
         </tr>
         {% for ticket_flight in ticket_flights %}
         <tr>
-            <td>{{ ticket_flight.ticket_ID }}</td>
-            <td>{{ ticket_flight.number }}</td>
+            <td>{{ ticket_flight.Ticket_ID }}</td>
+            <td>{{ ticket_flight.Flight_number }}</td>
             <td>{{ ticket_flight.Airline_name }}</td>
             <td>{{ ticket_flight.Departure_Airport }}</td>
             <td>{{ ticket_flight.Arrival_Airport }}</td>
