@@ -30,9 +30,10 @@
         <p>Airplane ID: {{ flight.Airplane_ID }}</p>
         <p>Price: {{ flight.Price }}$</p>
         
-        <form method="POST" action="{{ url_for('change_flight_status', username=username, flight_num=flight.Flight_number) }}">
+        <form method="POST">
             
             <input type="submit" value="Purchase">
+        </form>
 
     
 </body>
