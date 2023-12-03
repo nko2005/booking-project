@@ -15,7 +15,7 @@ from wtforms.validators import DataRequired, Email, Length, InputRequired, Regex
 from datetime import datetime, timedelta
 import ast
 import uuid
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 # Initialize the app from Flask
 app = Flask(__name__)#forms for flask
 #
@@ -364,7 +364,6 @@ class BookingAgentRegisterForm(Form):
 
     email = StringField('Email', [validators.Email(message='Invalid email'), validators.Optional()])
 
-    airline_name = StringField('Airline Name', [validators.Length(min=1, max=25),validators.InputRequired()])
 
     email = StringField('Email', [validators.Email(message='Invalid email'),validators.Optional()])
 
@@ -414,7 +413,7 @@ def register_booking_agent():
                 "INSERT INTO booking_agent(booking_agent_id, airline_name, email, password) VALUES (%s, %s, %s, %s)",
                 (
                     form.booking_agent_id.data,
-                    form.airline_name.data,
+                    session.get('airline'),
                     form.email.data,
                     form.hash_password(form.password.data),
                     
@@ -996,7 +995,7 @@ def track_spending():
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
     SELECT 
-        DATE_FORMAT(purchase_date, '%Y-%m') AS month, 
+        DATE_FORMAT(Purchase_date, '%Y-%m') AS month, 
         SUM(Price) AS total_spent
     FROM 
         ticket
@@ -1009,6 +1008,7 @@ def track_spending():
     """, (username,))
 
     spendings = cursor.fetchall()
+    print(spendings)
     months = [row['month'] for row in spendings]
     totals = [row['total_spent'] for row in spendings]
     
