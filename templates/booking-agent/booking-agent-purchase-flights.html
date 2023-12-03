@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Purchased</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/change-flight-status-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <div id="navbar" align="left">
+        <div id="nav-elements">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+    <div id = "title" align="center">
+        <h1>Flight Purchased</h1>
+    </div>
+    <div id = "content" align="center">
+        <h2>Flight Details</h2>
+        <p>Flight Number: {{ flight.Flight_number }}</p>
+        <p>Airline Name: {{ flight.Airline_name }}</p>
+        <p>Arriving To: {{ flight.Arrival_Airport }}, {{ flight.Arrival_City }}</p>
+        <p>Arrival Date: {{ flight.Arrival_date }}</p>
+        <p>Arrival Time: {{ flight.Arrival_hr }} : {{ flight.Arrival_min }}</p>
+        <p>Departing From: {{ flight.Departure_Airport }}, {{ flight.Departure_City }}</p>
+        <p>Departure Date: {{ flight.Departure_date }}</p>
+        <p>Departure Time: {{ flight.Departure_hr }} : {{ flight.Departure_min }}</p>
+        <p>Airplane ID: {{ flight.Airplane_ID }}</p>
+        <p>Price: {{ flight.Price }}$</p>
+        
+        <form method="POST">
+        {{ form.hidden_tag() }}
+        <input type="text" name="Customer_Email" placeholder="Customer Email">
+        
+        <span class="error">{{ error }}</span>
+           
+            <div id="input-container" align="center">
+                <input type="submit" value="Submit">
+        </form>
+
+    
+</body>
+</html> 

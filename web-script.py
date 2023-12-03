@@ -833,7 +833,7 @@ def register_airline_staff():
                     form.last_name.data,
                     form.hash_password(form.password.data),
                     form.dob.data,
-                    'staff'
+                    'staff',
                 )
             )
             conn.commit()
@@ -1087,7 +1087,7 @@ def track_spending():
 
     months = [row['month'] for row in monthly_spendings]
     totals = [row['total_spent'] for row in monthly_spendings]
-    
+    plt.clf()
     plt.bar(months, totals)
     plt.xlabel('Month')
     plt.ylabel('Total Spent')
@@ -1096,7 +1096,79 @@ def track_spending():
 
     return render_template('customer/track-spending.html', image_file='images/customer/spendings.png', total_spendings= total_spendings)
 
-    
+
+
+@app.route('/login/track_revenue')
+def track_revenue():
+    print(session.get('permission'))
+    if session.get('permission') != 'staff' and session.get('permission') != 'admin':
+        return "Unauthorized", 403
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+    SELECT
+        DATE_FORMAT(Ticket.Purchase_date, '%Y-%m') AS month,
+        SUM(Flight.Price) AS total_revenue
+    FROM
+        Ticket,Flight
+    WHERE
+        Flight.Airline_name = %s and Flight.Flight_number = Ticket.Flight_Number and Ticket.Booking_Agent_Email is NULL
+    GROUP BY
+        month
+    ORDER BY
+        month
+    """, (session.get('airline'),))
+    direct_revenue = cursor.fetchall()
+    cursor.execute("""
+    SELECT
+        DATE_FORMAT(Ticket.Purchase_date, '%Y-%m') AS month,
+        SUM(Flight.Price-Flight.Price*0.15) AS total_revenue
+    FROM
+        Ticket,Flight
+    WHERE
+        Flight.Airline_name = %s and Flight.Flight_number = Ticket.Flight_Number and Ticket.Booking_Agent_Email is not NULL
+    GROUP BY
+        month
+    ORDER BY
+        month
+    """, (session.get('airline'),))
+    indirect_revenue = cursor.fetchall()
+    cursor.execute("""
+    SELECT
+        SUM(Flight.Price) AS total_revenue
+    FROM
+        Ticket,Flight
+    WHERE
+        Flight.Airline_name = %s and Flight.Flight_number = Ticket.Flight_Number and Ticket.Booking_Agent_Email is NULL
+    """, (session.get('airline'),))
+    total_direct_revenue = cursor.fetchone()
+    cursor.execute("""
+    SELECT
+        SUM(Flight.Price) AS total_revenue
+    FROM
+        Ticket,Flight
+    WHERE
+        Flight.Airline_name = %s and Flight.Flight_number = Ticket.Flight_Number and Ticket.Booking_Agent_Email is not NULL
+    """, (session.get('airline'),))
+    plt.clf()
+    total_indirect_revenue = cursor.fetchone()
+    months = [row['month'] for row in direct_revenue]
+    direct_totals = [row['total_revenue'] for row in direct_revenue]
+    indirect_totals = [row['total_revenue'] for row in indirect_revenue]
+    plt.bar(months, direct_totals, label='Direct Revenue')
+    plt.bar(months, indirect_totals, label='Indirect Revenue')
+    plt.xlabel('Month')
+    plt.ylabel('Total Revenue')
+    plt.title('Monthly Revenue')
+    plt.legend()
+    plt.savefig('static/images/staff/revenue.png')
+    return render_template('airline-staff/track-revenue.html', image_file='images/staff/revenue.png', total_direct_revenue=total_direct_revenue, total_indirect_revenue=total_indirect_revenue)
+
+
+
+
+
+     
+         
 # New route for tracking spending
 @app.route('/login/track_commission')
 def track_commission():
@@ -1109,7 +1181,7 @@ def track_commission():
     cursor.execute("""
     SELECT 
         DATE_FORMAT(Ticket.Purchase_date, '%Y-%m') AS month, 
-        SUM(Flight.Price*0.15) AS total_commision
+        SUM(Flight.Price*0.15) AS total_commission
     FROM 
         Ticket,Flight
     WHERE 
@@ -1123,13 +1195,13 @@ def track_commission():
     monthly_commissions = cursor.fetchall()
     cursor.execute("""
     SELECT 
-        SUM(Flight.Price) AS total_commision
+        SUM(Flight.Price*0.15) AS total_commission
     FROM 
         Ticket
     JOIN 
         Flight ON Flight.Flight_number = Ticket.Flight_Number
     WHERE 
-        Ticket.Customer_Email = %s
+        Ticket.Booking_Agent_Email = %s
     """, (session.get('email'),))
     total_commissions = cursor.fetchone()
     
@@ -1137,15 +1209,15 @@ def track_commission():
     print(total_commissions)
 
     months = [row['month'] for row in monthly_commissions]
-    totals = [row['total_spent'] for row in monthly_commissions]
-    
+    totals = [row['total_commission'] for row in monthly_commissions]
+    plt.clf()
     plt.bar(months, totals)
     plt.xlabel('Month')
     plt.ylabel('Total Spent')
     plt.title('Monthly Spendings')
-    plt.savefig('static/images/customer/spendings.png')
+    plt.savefig('static/images/agent/commissions.png')
 
-    return render_template('booking-agent/agent-my-commission.html', image_file='images/agent/spendings.png', total_commissions= total_commissions)
+    return render_template('booking-agent/agent-my-commission.html', image_file='images/agent/commissions.png', total_commissions= total_commissions)
     
 
 
@@ -1327,10 +1399,15 @@ def booking_agent_purchase_flights(flight_num):
     print(flight)
         # Handle the form submission to change the flight status
     
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate():
         ticket_id=str(uuid.uuid1())
+        cursor.execute("SELECT * FROM customer WHERE email = %s", (form.Customer_Email.data,))
+        existing_customer = cursor.fetchone()
+        print(existing_customer)
+        if not existing_customer['Email']:
+             return "Invalid Customer Email"
 
-        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date) VALUES (%s,%s,%s,%s, %s, %s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],form.Customer_Email.data,session.get('email'), datetime.now().date()))
+        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date) VALUES (%s,%s,%s,%s, %s, %s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],existing_customer['Email'],session.get('email'), datetime.now().date()))
         conn.commit()
         cursor.close()
         print('Ticket Purchased Successfully!')

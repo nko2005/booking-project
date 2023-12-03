@@ -44,11 +44,13 @@
             <th>Airline Name</th>
             <th>Departure Airport</th>
             <th>Arrival Airport</th>
+            <th>Departure Date</th>
             <th>Departure Time</th>
+            <th>Arrival Date</th>
             <th>Arrival Time</th>
             <th>Price</th>
             <th>Status</th>
-            <th>Edit</th>
+            <th>Purchase</th>
         </tr>
         {% for flight in flights %}
         <tr>
@@ -56,7 +58,9 @@
             <td>{{ flight.Airline_name }}</td>
             <td>{{ flight.Departure_Airport }}</td>
             <td>{{ flight.Arrival_Airport }}</td>
+            <td>{{ flight.Departure_date }}</td>
             <td>{{ flight.Departure_hr }}:{{ flight.Departure_min }}</td>
+            <td>{{ flight.Arrival_date }}</td>
             <td>{{ flight.Arrival_hr }}:{{ flight.Arrival_min }}</td>
             <td>{{ flight.Price }}</td>
             <td class="{{ 'text-green' if flight.Status == 'Upcoming' else 'text-red' if flight.Status == 'Cancelled' else 'text-yellow' if flight.Status == 'Delayed' else '' }}">{{ flight.Status }}</td>

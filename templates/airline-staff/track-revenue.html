@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Revenue</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/track-revenue-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <div id="navbar">
+        <a href="{{url_for('home')}}">Home</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+    </div>
+    <div id = "container" align="center">
+
+    <div id = "title" align="center">
+        <h1>Track Revenue</h1>
+    </div>
+    <br><br>
+    <br><br>
+    <br><br>
+    <br><br>
+
+    <div id ="content" >
+    <h2>Total Direct Revenue: {{ total_direct_revenue.total_revenue }}$</h2>
+    <h2>Total Indirect Revenue: {{total_indirect_revenue.total_revenue }}$</h2>
+
+    Here is the Airline Revenue for the last 6 months:
+    
+    <img src="{{ url_for('static', filename='images/staff/revenue.png') }}" alt="Monthly Revneue">
+    </div>
+</div>
+
+</body>
+</html>
+
+
+

@@ -8,7 +8,7 @@
 </head>
 <body>
     <div id="navbar">
-        <a href="#">Home</a>
+        <a href="{{url_for('home')}}">Home</a>
         <a href="#">About</a>
         <a href="#">Contact</a>
     </div>
@@ -21,7 +21,7 @@
     <br><br>
 
     <div id ="content" >
-    <h2>Total Commissions: {{ total_commissions.total_commissions }}$</h2>
+    <h2>Total Commissions: {{ total_commissions.total_commission }}$</h2>
     Here is your commissions for the last 6 months:
     
     <img src="{{ url_for('static', filename='images/agent/commissions.png') }}" alt="Monthly Commissions">
