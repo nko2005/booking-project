@@ -837,9 +837,10 @@ def purchase_tickets():
     end_date = DateField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d', validators=[validators.Optional()])
     submit = SubmitField('Submit')
 '''
-@app.route('/login/customer_dashboard/search_flights/user/<username>', methods=['GET', 'POST'])
-def search_flights(username):
+@app.route('/login/search_flights', methods=['GET', 'POST'])
+def search_flights():
     # Check if the user has the necessary permission
+    username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
 

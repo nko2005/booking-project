@@ -46,7 +46,6 @@
             <th>Arrival Airport</th>
             <th>Departure Time</th>
             <th>Arrival Time</th>
-            <th>Airplane ID</th>
             <th>Price</th>
             <th>Status</th>
             <th>Edit</th>
@@ -59,7 +58,6 @@
             <td>{{ flight.Arrival_Airport }}</td>
             <td>{{ flight.Departure_hr }}:{{ flight.Departure_min }}</td>
             <td>{{ flight.Arrival_hr }}:{{ flight.Arrival_min }}</td>
-            <td>{{ flight.Airplane_ID }}</td>
             <td>{{ flight.Price }}</td>
             <td class="{{ 'text-green' if flight.Status == 'Upcoming' else 'text-red' if flight.Status == 'Cancelled' else 'text-yellow' if flight.Status == 'Delayed' else '' }}">{{ flight.Status }}</td>
             <td><a href="{{url_for('change_flight_status',flight_num=flight.Flight_number)}}">Edit</a></td>
