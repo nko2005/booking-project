@@ -272,10 +272,65 @@ def view_flights():
         cursor.close()
         return render_template('airline-staff/view-flights.html', flights=flights,form = form)
         
-        
-        
+@app.route('/login/airline_staff_dashboard/view_staff', methods=['GET','POST'])
+def view_staff():
+    # Check if the user has the necessary permission
+    if not session.get('permission') == 'admin':
+        return "Unauthorized", 403
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM airline_staff WHERE airline_name = %s", (session.get('airline'),))
+    staffs = cursor.fetchall()
+    conn.commit()
+    cursor.close()
+    return render_template('airline-staff/view-staff.html', staffs=staffs)     
+
+
+
+
+
+
+
+
+class ChangeStaffStatusForm(FlaskForm):
+    status = RadioField('Status', choices=[('staff','Staff'), ('admin','Admin')], validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+@app.route('/change_staff_status/<username>', methods=['GET', 'POST'])
+def change_staff_status(username):
+        # Check if the user has the necessary permission
+        if not session.get('permission') == 'admin':
+            return "Unauthorized", 403
+        print("da user is ",username)
+        form = ChangeStaffStatusForm()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM airline_staff WHERE Username = %s", (username,))
+        staff = cursor.fetchone()
+        print(staff)
+        # Handle the form submission to change the flight status
+        if request.method == 'POST' and form.validate_on_submit():
+            # Process the form data and update the flight status
+            # ...
+            new_status = form.status.data
+            cursor.execute("UPDATE airline_staff SET permission = %s WHERE username = %s", (new_status, username))
+            conn.commit()
+            cursor.close()
+
+            return redirect(url_for('view_staff'))
+        conn.commit()
+        cursor.close()
+        return render_template('airline-staff/change-staff-status.html', staff=staff,form = form)
      
-class ChangeStatusForm(FlaskForm):
+     
+
+
+
+
+
+
+
+     
+class ChangeFlightStatusForm(FlaskForm):
     status = RadioField('Status', choices=[('upcoming','Upcoming'), ('delayed','Delayed'), ('cancelled','Cancelled')], validators=[DataRequired()])
     submit = SubmitField('Submit')
     # Define a route to change the status of flights
@@ -285,7 +340,7 @@ def change_flight_status(flight_num):
         if not session.get('permission') == 'admin':
             return "Unauthorized", 403
         print(flight_num)
-        form = ChangeStatusForm()
+        form = ChangeFlightStatusForm()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM flight WHERE flight_number = %s", (flight_num,))
         flight = cursor.fetchone()
@@ -770,14 +825,15 @@ def register_airline_staff():
             return "User already exists"
         else:
             cursor.execute(
-                "INSERT INTO airline_staff(Airline_name, username, first_name, last_name, password, DOB) VALUES (%s, %s, %s, %s, %s, %s)",
+                "INSERT INTO airline_staff(Airline_name, username, first_name, last_name, password, DOB, permission) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 (
                     form.airline_name.data,
                     form.username.data,
                     form.first_name.data,
                     form.last_name.data,
                     form.hash_password(form.password.data),
-                    form.dob.data
+                    form.dob.data,
+                    'staff'
                 )
             )
             conn.commit()

@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modify Airline Staff Status</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/change-staff-status-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <div id="navbar" align="left">
+        <div id="nav-elements">
+            <a href="{{url_for('home')}}">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+    <div id = "title" align="center">
+        <h1>Modify Airline Staff Status</h1>
+    </div>
+    <div id = "content" align="center">
+        <h2>Airline Staff Details</h2>
+        <p>Airline Name: {{ staff.Airline_name }}</p>
+        <p>Username: {{ staff.Username }}</p>
+        <p>First Name: {{ staff.first_name }}</p>
+        <p>Last Name: {{ staff.last_name }}</p>
+        <p>DOB: {{ staff.Dob }}</p>
+        <p>Permission: {{ staff.permission }}</p>
+        
+        <form method="POST" action="{{ url_for('change_staff_status', username = staff.Username) }}">
+            {{ form.csrf_token }}
+            {{ form.hidden_tag() }}
+            <label for="status">Status:</label>
+            <select id="status" name="status">
+                {% for status in form.status.choices %}
+                <option value="{{ status[0] }}">{{ status[1] }}</option>
+                {% endfor %}
+            </select><br><br>
+            <input type="submit" value="Change Status">
+        </form>
+
+    
+</body>
+</html> 

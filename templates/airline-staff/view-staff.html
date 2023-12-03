@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Airline Staff</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/view-staff-style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <h1>View Airline Staff</h1>
+ 
+    </div>
+    <div id = "content">
+    <table id="output">
+        <tr>
+           
+            <th>Airline Name</th>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>DOB</th>
+            <th>permission</th>
+            <th>Edit Permission</th>
+        
+        </tr>
+        {% for staff in staffs %}
+        <tr>
+            <td>{{ staff.Airline_name  }}</td>
+            <td>{{ staff.Username  }}</td>
+            <td>{{ staff.first_name  }}</td>
+            <td>{{ staff.last_name  }}</td>
+            <td>{{staff.Dob}}</td>
+            <td>{{staff.permission}}</td>
+            <td><a href="{{url_for('change_staff_status', username=staff.Username)}}">Edit</a></td>
+
+
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>
