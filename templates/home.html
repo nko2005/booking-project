@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Booktrip Century Global - Flight Booking</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/home-style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+  <header>
+    <div id = "title" align="center">
+    <h1>Welcome to Booktrip Century Global</h1>
+    </div>
+    <div id = "navbar"></div>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="{{url_for('login')}}">Login</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+    </div>
+</header>
+  
+  <main>
+    <section>
+    <div id ="content" align="center">
+      <h2>Find Your Perfect Flight</h2>
+     
+    <section>
+      <h2>Popular Destinations</h2>
+      <ul>
+        <li><a href="#">New York</a></li>
+        <li><a href="#">Paris</a></li>
+        <li><a href="#">Tokyo</a></li>
+        <li><a href="#">London</a></li>
+        <li><a href="#">Dubai</a></li>
+      </ul>
+    </section>
+    </div>
+  </main>
+  
+  <footer>
+    <p>&copy; 2022 Booktrip Century Global. All rights reserved.</p>
+  </footer>
+</body>
+</html>

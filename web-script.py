@@ -26,6 +26,9 @@ conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
                                database='booking', port = 3307)
+@app.route('/home',methods=['GET'])
+def home():
+    return render_template('home.html')
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -437,13 +440,13 @@ def view_agents():
             return "Unauthorized", 403
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-                   SELECT booking_agent.Booking_agent_ID,booking_agent.Airline_Name,booking_agent.Email, SUM(ticket.Price *0.15) as commission
-                   FROM booking_agent,ticket 
-                   WHERE airline_name = %s AND booking_agent.Email = ticket.Booking_Agent_Email
+                   SELECT booking_agent.Booking_agent_ID,booking_agent.Airline_Name,booking_agent.Email, SUM(Flight.Price*0.15) as commission
+                   FROM booking_agent,Ticket,Flight
+                   WHERE booking_agent.Airline_Name = %s AND booking_agent.Email = Ticket.Booking_Agent_Email AND Ticket.Flight_Number = Flight.Flight_number
                    Group by booking_agent.Email
-                   Order by total_commission DESC""", (session.get('airline'),))
+                   Order by commission DESC""", (session.get('airline'),))
     agents = cursor.fetchall()
-    print(agents)
+    print("the agents", agents)
     conn.commit()
     cursor.close()
     return render_template('airline-staff/view-agents.html', agents=agents)
@@ -1038,6 +1041,63 @@ def track_spending():
     return render_template('customer/track-spending.html', image_file='images/customer/spendings.png', total_spendings= total_spendings)
 
     
+# New route for tracking spending
+@app.route('/login/track_commission')
+def track_commission():
+    # Implement logic to track spending, retrieve and display spending data
+    # You may need to query your database for spending information
+   
+    if session.get('permission') != 'user':
+        return "Unauthorized", 403
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+    SELECT 
+        DATE_FORMAT(Ticket.Purchase_date, '%Y-%m') AS month, 
+        SUM(Flight.Price*0.15) AS total_commision
+    FROM 
+        Ticket,Flight
+    WHERE 
+        Ticket.Booking_Agent_Email = %s and Flight.Flight_number = Ticket.Flight_Number
+    GROUP BY 
+        month
+    ORDER BY 
+        month
+    """, (session.get('email'),))
+
+    monthly_commissions = cursor.fetchall()
+    cursor.execute("""
+    SELECT 
+        SUM(Flight.Price) AS total_commision
+    FROM 
+        Ticket
+    JOIN 
+        Flight ON Flight.Flight_number = Ticket.Flight_Number
+    WHERE 
+        Ticket.Customer_Email = %s
+    """, (session.get('email'),))
+    total_commissions = cursor.fetchone()
+    
+
+    print(total_commissions)
+
+    months = [row['month'] for row in monthly_commissions]
+    totals = [row['total_spent'] for row in monthly_commissions]
+    
+    plt.bar(months, totals)
+    plt.xlabel('Month')
+    plt.ylabel('Total Spent')
+    plt.title('Monthly Spendings')
+    plt.savefig('static/images/customer/spendings.png')
+
+    return render_template('booking-agent/agent-my-commission.html', image_file='images/agent/spendings.png', total_commissions= total_commissions)
+    
+
+
+
+
+
+
+
 
 
 
@@ -1095,15 +1155,6 @@ class AgentViewFlights(FlaskForm):
     Submit = SubmitField('Submit')
 
 
-
-
-
-
-
-
-
-
-
 @app.route('/login/booking_agent_view_flights')
 def booking_agent_view_flights():
         email = session.get('email')
@@ -1123,6 +1174,114 @@ def booking_agent_view_flights():
                 
         return render_template('booking-agent/booking-agent-view-flights.html', ticket_flights=ticket_flights,form = form,email = email)
 
+
+@app.route('/login/booking_agent_search_flights', methods=['GET', 'POST'])
+def booking_agent_search_flights():
+    # Check if the user has the necessary permission
+    username = session.get('username')
+    if session.get('permission') != 'user':
+        return "Unauthorized", 403
+
+    form = AgentViewFlights()
+    print(session.get('airline'))
+
+    print(datetime.now().date())
+       
+    if request.method == 'POST':
+            if form.start_date.data is None or form.end_date.data is None:  
+                start_date = datetime.now().date()
+                end_date = start_date + timedelta(days=30) 
+                form.start_date.data = start_date
+                form.end_date.data = end_date
+
+                    
+            if form.start_date.data is not None and  form.end_date.data is not None and form.start_date.data > form.end_date.data:
+                return "Invalid date range"
+                    
+            if form.validate_on_submit(): 
+                start_date = form.start_date.data
+                end_date = form.end_date.data
+
+                            
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                SELECT * FROM flight
+                WHERE departure_date BETWEEN %s AND %s
+                AND Departure_Airport = %s
+                AND Arrival_Airport = %s AND Airline_name = %s
+            """,(start_date,end_date,form.depart_from.data,form.arrive_at.data,session.get('airline')))   
+                flights = cursor.fetchall()
+                conn.commit()
+                cursor.close()
+                        
+                return render_template('booking-agent/booking-agent-search-flights.html', flights=flights, form=form, username=username)
+            
+            else:
+                    
+                start_date = datetime.now().date()
+                end_date = start_date + timedelta(days=30)
+                status = 'upcoming'
+                            
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                SELECT * FROM flight
+                WHERE departure_date BETWEEN %s AND %s
+                AND Departure_Airport = %s
+                AND Arrival_Airport = %s AND Airline_name = %s
+            """,(start_date,end_date,form.depart_from.data,form.arrive_at.data,session.get('airline')))   
+                flights = cursor.fetchall()
+                conn.commit()
+                cursor.close()
+                return render_template('booking-agent/booking-agent-search-flights.html', flights=flights, form=form, username=username)
+        
+    start_date = datetime.now().date()
+    end_date = start_date + timedelta(days=30)
+    status = 'upcoming'
+                    
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+                SELECT * FROM flight
+                WHERE departure_date BETWEEN %s AND %s
+                AND Departure_Airport = %s
+                AND Arrival_Airport = %s
+            """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
+    flights = cursor.fetchall()
+    conn.commit()
+    cursor.close()
+    return render_template('booking-agent/booking-agent-search-flights.html', flights=flights, form=form, username=username)
+
+class AgentPurchaseTicket(FlaskForm):
+    Customer_Email = StringField('Customer_Email', [validators.InputRequired()])
+    submit = SubmitField('Submit')
+
+
+
+
+@app.route('/login/booking_agent_purchase_flights/<flight_num>', methods=['GET', 'POST'])
+def booking_agent_purchase_flights(flight_num):
+    # Check if the user has the necessary permission
+    username = session.get('username')
+    if session.get('permission') != 'user':
+        return "Unauthorized", 403
+    form = AgentPurchaseTicket()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM flight WHERE flight_number = %s", (flight_num,))
+
+    flight = cursor.fetchone()
+    print(flight)
+        # Handle the form submission to change the flight status
+    
+    if request.method == 'POST':
+        ticket_id=str(uuid.uuid1())
+
+        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date) VALUES (%s,%s,%s,%s, %s, %s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],form.Customer_Email.data,session.get('email'), datetime.now().date()))
+        conn.commit()
+        cursor.close()
+        print('Ticket Purchased Successfully!')
+        return redirect(url_for('customer_dashboard'))
+    
+    return render_template('booking-agent/booking-agent-purchase-flights.html', username=username, form=form, flight=flight)
+    
 
 
 

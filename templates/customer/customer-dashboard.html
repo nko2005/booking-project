@@ -14,7 +14,7 @@
     <nav>
         <ul>
             <div id="title" align="center"></div>
-            <li><a href="{{ url_for('customer_dashboard', username=username) }}">Home</a></li>
+            <li><a href="{{url_for('home')}}">Home</a></li>
             <li><a href="{{ url_for('customer_view_flights') }}">View My Flights</a></li>
             <li><a href="{{ url_for('search_flights', username=username)}}">Search & Purchase Flights</a></li>
             <li><a href="{{ url_for('track_spending', username=username)}}">Track My Spending</a></li>
@@ -25,6 +25,7 @@
     <main>
         <!-- Placeholder for dashboard content -->
         <h2>Dashboard Content Goes Here</h2>
+
     </main>
 
     <footer>

@@ -8,23 +8,14 @@
 </head>
 <body>
     <h1>View Agents</h1>
-    <div class="search-bar">
-        <form method="POST">
-            {{ form.hidden_tag() }}
-            <input type="text" name="search" placeholder="Search Agent ID">
-            {% for error in form.search.errors %}
-            <span class="error">{{ error }}</span>
-            {% endfor %}
-            <br><br>
-            <input type="submit" value="Search">
-
-        </form>
+ 
+       
        
     </div>
     <div id = "content">
     <table id="output">
         <tr>
-            <th> Booking Agent ID</th>
+            <th>Booking Agent ID</th>
             <th>Airline Name</th>
             <th>Agent Email</th>
             <th>Commission</th>
