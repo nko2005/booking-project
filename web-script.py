@@ -882,7 +882,81 @@ def search_flights():
 
     form = ViewFlightsForm()
 
-    if form.validate_on_submit() and request.method == 'POST':
+
+    print(datetime.now().date())
+       
+    if request.method == 'POST':
+            if form.start_date.data is None or form.end_date.data is None:  
+                start_date = datetime.now().date()
+                end_date = start_date + timedelta(days=30) 
+                form.start_date.data = start_date
+                form.end_date.data = end_date
+
+                    
+            if form.start_date.data is not None and  form.end_date.data is not None and form.start_date.data > form.end_date.data:
+                return "Invalid date range"
+                    
+            if form.validate_on_submit(): 
+                start_date = form.start_date.data
+                end_date = form.end_date.data
+
+                            
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                SELECT * FROM flight
+                WHERE departure_date BETWEEN %s AND %s
+                AND Departure_Airport = %s
+                AND Arrival_Airport = %s
+            """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))   
+                flights = cursor.fetchall()
+                conn.commit()
+                cursor.close()
+                        
+                return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
+            
+            else:
+                    
+                start_date = datetime.now().date()
+                end_date = start_date + timedelta(days=30)
+                status = 'upcoming'
+                            
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                SELECT * FROM flight
+                WHERE departure_date BETWEEN %s AND %s
+                AND Departure_Airport = %s
+                AND Arrival_Airport = %s
+            """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
+                flights = cursor.fetchall()
+                conn.commit()
+                cursor.close()
+                return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
+        
+    start_date = datetime.now().date()
+    end_date = start_date + timedelta(days=30)
+    status = 'upcoming'
+                    
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+                SELECT * FROM flight
+                WHERE departure_date BETWEEN %s AND %s
+                AND Departure_Airport = %s
+                AND Arrival_Airport = %s
+            """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
+    flights = cursor.fetchall()
+    conn.commit()
+    cursor.close()
+    return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
+        
+@app.route('/login/purchase_flight_ticket', methods=['GET', 'POST'])
+def purchase_flight_ticket():
+    # Check if the user has the necessary permission
+    username = session.get('username')
+    if session.get('permission') != 'user':
+        return "Unauthorized", 403
+    
+    return render_template('customer/purchase-flight-ticket.html', username=username)
+    '''if form.validate_on_submit() and request.method == 'POST':
         start_date = form.start_date.data
         end_date = form.end_date.data
 
@@ -918,7 +992,7 @@ def search_flights():
         cursor.close()
 
         return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
-
+'''
 # New route for tracking spending
 @app.route('/login/track_spending')
 def track_spending():
