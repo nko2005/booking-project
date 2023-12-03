@@ -1022,6 +1022,61 @@ def customer_view_flights():
 
 
 
+
+
+class AgentViewFlights(FlaskForm):
+    def __init__(self, *args, **kwargs):
+        super(AgentViewFlights, self).__init__(*args, **kwargs)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT airport_name, city FROM airport")
+        city_list = cursor.fetchall()
+        cursor.close()
+        conn.commit()
+    
+        
+        city_choices = [(city['airport_name'], city['airport_name'] + ', ' + city['city']) for city in city_list]
+        city_choices.insert(0, ('', 'Select a city'))  # Add an empty choice at the beginning
+        self.depart_from.choices = city_choices
+        self.arrive_at.choices = city_choices
+
+    depart_from = SelectField('Depart From', validators=[validators.InputRequired()])
+    arrive_at = SelectField('Arrive At', validators=[validators.InputRequired()])
+    start_date = DateField('Start Date', default=datetime.now().date(), format='%Y-%m-%d',validators=[validators.Optional()])
+    end_date = DateField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d',validators=[validators.Optional()])
+    Submit = SubmitField('Submit')
+
+
+
+
+
+
+
+
+
+
+
+@app.route('/login/booking_agent_view_flights')
+def booking_agent_view_flights():
+        email = session.get('email')
+
+        # Check if the user has the necessary permission
+        if not session.get('permission') == 'user':
+            return "Unauthorized", 403
+        form = AgentViewFlights()
+               
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket WHERE Booking_Agent_Email=%s)",(email,))
+                
+        ticket_flights = cursor.fetchall()
+        print(ticket_flights)
+        conn.commit()
+        cursor.close()
+                
+        return render_template('booking-agent/booking-agent-view-flights.html', ticket_flights=ticket_flights,form = form,email = email)
+
+
+
+
 # Set the secret key for the app
 app.secret_key = '123456'
 #Run the app on localhost port 5000

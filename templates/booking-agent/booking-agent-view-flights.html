@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agent View Flights</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/booking-agent-view-flights.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+</head>
+<body>
+    <h1>Agent View Flights</h1>
+    <div class="search-bar">
+        
+   
+
+    <div id = "content">
+    <table id="output">
+        <tr>
+            <th>Ticket ID</th>
+            <th>Flight Number</th>
+            <th>Airline Name</th>
+            <th>Departure Airport</th>
+            <th>Arrival Airport</th>
+            <th>Arrival City</th>
+            <th>Departure Time</th>
+            <th>Arrival Time</th>
+            <th>Price</th>
+            <th>Status</th>
+            
+        </tr>
+        {% for ticket_flight in ticket_flights %}
+        <tr>
+            <td>{{ ticket_flight.Ticket_ID }}</td>
+            <td>{{ ticket_flight.Flight_number }}</td>
+            <td>{{ ticket_flight.Airline_name }}</td>
+            <td>{{ ticket_flight.Departure_Airport }}</td>
+            <td>{{ ticket_flight.Arrival_Airport }}</td>
+            <td>{{ ticket_flight.Arrival_City }}</td>
+            <td>{{ ticket_flight.Departure_hr }}:{{ ticket_flight.Departure_min }}</td>
+            <td>{{ ticket_flight.Arrival_hr }}:{{ ticket_flight.Arrival_min }}</td>
+            <td>{{ ticket_flight.Price }}</td>
+            <td class="{{ 'text-green' if ticket_flight.Status == 'Upcoming' else 'text-red' if ticket_flight.Status == 'Cancelled' else 'text-yellow' if ticket_flight.Status == 'Delayed' else '' }}">{{ ticket_flight.Status }}</td>
+            
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>
