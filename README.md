@@ -3,6 +3,8 @@
 
 This project is a Flask-based web application that implements user authentication and login functionality to create a larger and more complicated flight booking system.
 
+By: Nawaf Alotaishan (nko2005)
+Haoyu Wang (HW2682)
 ## Installation
 
 1. Clone the repository.
