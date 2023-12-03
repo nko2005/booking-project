@@ -21,7 +21,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3307)
+                               database='booking', port = 3306)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -138,14 +138,43 @@ def airline_staff_dashboard():
     # Import necessary libraries
 
     # ...
+
+
+class CustomerViewFlights(FlaskForm):
+    def __init__(self, *args, **kwargs):
+        super(CustomerViewFlights, self).__init__(*args, **kwargs)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT airport_name, city FROM airport")
+        city_list = cursor.fetchall()
+        cursor.close()
+        conn.commit()
+    
+        
+        city_choices = [(city['airport_name'], city['airport_name'] + ', ' + city['city']) for city in city_list]
+        city_choices.insert(0, ('', 'Select a city'))  # Add an empty choice at the beginning
+        self.depart_from.choices = city_choices
+        self.arrive_at.choices = city_choices
+
+    depart_from = SelectField('Depart From', validators=[validators.InputRequired()])
+    arrive_at = SelectField('Arrive At', validators=[validators.InputRequired()])
+    start_date = DateField('Start Date', default=datetime.now().date(), format='%Y-%m-%d',validators=[validators.Optional()])
+    end_date = DateField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d',validators=[validators.Optional()])
+    Submit = SubmitField('Submit')
+
 @app.route('/login/customer_dashboard')
 def customer_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
+    form=CustomerViewFlights()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer WHERE Customer_Email=%s)",(username,))
+    ticket_flights = cursor.fetchall()
+    conn.commit()
+    cursor.close()
 
-    return render_template('customer/customer-dashboard.html', username=username)
+    return render_template('customer/customer-dashboard.html', ticket_flights=ticket_flights,form=form, username=username)
 
 @app.route('/login/booking_agent_dashboard', methods=['GET', 'POST'])
 def booking_agent_dashboard():
@@ -842,15 +871,7 @@ def register_customer():
 
 
 
-@app.route('/login/purchase_tickets')
-def purchase_tickets():
-    # Implement logic to allow the customer to purchase tickets
-    # You may need to integrate with a payment gateway and update the database accordingly
-    username = session.get('username')
-    if session.get('permission') != 'user':
-        return "Unauthorized", 403
-        
-    return render_template('customer/purchase-tickets.html', username=username)
+
 
 # New route for searching flights
 '''class SearchFlightsForm(FlaskForm):
@@ -873,6 +894,10 @@ def purchase_tickets():
     end_date = DateField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d', validators=[validators.Optional()])
     submit = SubmitField('Submit')
 '''
+
+
+
+
 @app.route('/login/search_flights', methods=['GET', 'POST'])
 def search_flights():
     # Check if the user has the necessary permission
@@ -880,7 +905,7 @@ def search_flights():
     if session.get('permission') != 'user':
         return "Unauthorized", 403
 
-    form = ViewFlightsForm()
+    form = CustomerViewFlights()
 
 
     print(datetime.now().date())
@@ -947,52 +972,31 @@ def search_flights():
     conn.commit()
     cursor.close()
     return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
-        
-@app.route('/login/purchase_flight_ticket', methods=['GET', 'POST'])
+
+
+class PurchaseTicket(FlaskForm):
+    #status = RadioField('Status', choices=[('upcoming','Upcoming'), ('delayed','Delayed'), ('cancelled','Cancelled')], validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+@app.route('/login/purchase_flight_ticket/<flight_num>', methods=['GET', 'POST'])
 def purchase_flight_ticket(flight_num):
     # Check if the user has the necessary permission
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
+    form = PurchaseTicket()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM flight WHERE flight_number = %s", (flight_num,))
+    flight = cursor.fetchone()
+    print(flight)
+        # Handle the form submission to change the flight status
+    if request.method == 'POST':
+        return 'Ticket purchased Successfully!'
     
-    return render_template('customer/purchase-flight-ticket.html', username=username, flight=flight_num)
-    '''if form.validate_on_submit() and request.method == 'POST':
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT * FROM flight
-            WHERE departure_date BETWEEN %s AND %s
-            AND Departure_Airport = %s
-            AND Arrival_Airport = %s
-        """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
-
-        flights = cursor.fetchall()
-        conn.commit()
-        cursor.close()
-
-        return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
-
-    else:
-        start_date = datetime.now().date()
-        end_date = start_date + timedelta(days=30)
-        status = 'upcoming'
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT * FROM flight
-            WHERE departure_date BETWEEN %s AND %s
-            AND Departure_Airport = %s
-            AND Arrival_Airport = %s
-        """,(start_date,end_date,form.depart_from.data,form.arrive_at.data))
-
-        flights = cursor.fetchall()
-        conn.commit()
-        cursor.close()
-
-        return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
-'''
+    return render_template('customer/purchase-flight-ticket.html', username=username, form=form, flight=flight_num)
+    
+    
 # New route for tracking spending
 @app.route('/login/track_spending')
 def track_spending():
@@ -1004,35 +1008,16 @@ def track_spending():
     
     return render_template('customer/track-spending.html', username=username)
 
-'''class CustomerViewFlights(FlaskForm):
-    def __init__(self, *args, **kwargs):
-        super(CustomerViewFlights, self).__init__(*args, **kwargs)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT airport_name, city FROM airport")
-        city_list = cursor.fetchall()
-        cursor.close()
-        conn.commit()
-    
-        
-        city_choices = [(city['airport_name'], city['airport_name'] + ', ' + city['city']) for city in city_list]
-        city_choices.insert(0, ('', 'Select a city'))  # Add an empty choice at the beginning
-        self.depart_from.choices = city_choices
-        self.arrive_at.choices = city_choices
 
-    depart_from = SelectField('Depart From', validators=[validators.InputRequired()])
-    arrive_at = SelectField('Arrive At', validators=[validators.InputRequired()])
-    start_date = DateField('Start Date', default=datetime.now().date(), format='%Y-%m-%d',validators=[validators.Optional()])
-    end_date = DateField('End Date', default=(datetime.now().date() + timedelta(days=30)), format='%Y-%m-%d',validators=[validators.Optional()])
-    Submit = SubmitField('Submit')
-'''
-@app.route('/login/customer_view_flights', methods=['GET','POST'])
-def customer_view_flights():
+
+@app.route('/login/customer_view_flights')
+def customer_view_flights(ticket_flights):
         username = session.get('username')
 
         # Check if the user has the necessary permission
         if not session.get('permission') == 'user':
             return "Unauthorized", 403
-        form = ViewFlightsForm()
+        form = CustomerViewFlights()
        
         # Get the airline staff's username
        
@@ -1042,7 +1027,7 @@ def customer_view_flights():
         if form.validate_on_submit() and request.method == 'POST':
            
                     cursor = conn.cursor(dictionary=True)
-                    cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer)")
+                    cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customerWHERE Customer_Email=%s)",(username,))
                     
                     ticket_flights = cursor.fetchall()
                     conn.commit()
@@ -1053,7 +1038,7 @@ def customer_view_flights():
                 
                
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer)")
+                cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer WHERE Customer_Email=%s)",(username,))
                 ticket_flights = cursor.fetchall()
                 conn.commit()
                 cursor.close()

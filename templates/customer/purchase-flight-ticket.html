@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Modify Flight Status</title>
+    <title>Ticket Purchased</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/change-flight-status-style.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 </head>
@@ -15,7 +15,7 @@
         </div>
     </div>
     <div id = "title" align="center">
-        <h1>Modify Flight Status</h1>
+        <h1>Ticket Purchased</h1>
     </div>
     <div id = "content" align="center">
         <h2>Flight Details</h2>
@@ -29,18 +29,8 @@
         <p>Departure Time: {{ flight.Departure_hr }} : {{ flight.Departure_min }}</p>
         <p>Airplane ID: {{ flight.Airplane_ID }}</p>
         <p>Price: {{ flight.Price }}$</p>
-        <p>Status: {{ flight.Status }}</p>
         
-        <form method="POST" action="{{ url_for('purchase_flight_ticket', username=username, flight_num=flight.Flight_number) }}">
-            {{ form.csrf_token }}
-            {{ form.hidden_tag() }}
-            <label for="status">Status:</label>
-            <select id="status" name="status">
-                {% for status in form.status.choices %}
-                <option value="{{ status[0] }}">{{ status[1] }}</option>
-                {% endfor %}
-            </select><br><br>
-            <input type="submit" value="Change Status">
+        
 
     
 </body>
