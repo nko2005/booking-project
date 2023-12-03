@@ -206,8 +206,8 @@ class ViewFlightsForm(FlaskForm):
 
 
 # Define a route to view flights
-@app.route('/login/airline_staff_dashboard/view_flights/user/<username>', methods=['GET','POST'])
-def view_flights(username):
+@app.route('/login/airline_staff_dashboard/view_flights', methods=['GET','POST'])
+def view_flights():
         # Check if the user has the necessary permission
         if not session.get('permission') == 'admin':
             return "Unauthorized", 403
@@ -240,7 +240,7 @@ def view_flights(username):
                         conn.commit()
                         cursor.close()
                     
-                        return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+                        return render_template('airline-staff/view-flights.html', flights=flights,form = form)
                 else:
                 
                     start_date = datetime.now().date()
@@ -252,7 +252,7 @@ def view_flights(username):
                     flights = cursor.fetchall()
                     conn.commit()
                     cursor.close()
-                    return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+                    return render_template('airline-staff/view-flights.html', flights=flights,form = form)
         
         start_date = datetime.now().date()
         end_date = start_date + timedelta(days=30)
@@ -263,7 +263,7 @@ def view_flights(username):
         flights = cursor.fetchall()
         conn.commit()
         cursor.close()
-        return render_template('airline-staff/view-flights.html', flights=flights,form = form,username = username)
+        return render_template('airline-staff/view-flights.html', flights=flights,form = form)
         
         
         
@@ -292,7 +292,7 @@ def change_flight_status(flight_num):
             conn.commit()
             cursor.close()
 
-            return redirect(url_for('view_flights', username=session.get('username')))
+            return redirect(url_for('view_flights'))
         conn.commit()
         cursor.close()
         return render_template('airline-staff/change-flight-status.html', flight=flight,form = form)
@@ -301,8 +301,8 @@ class SearchPassengerForm(FlaskForm):
     flight_num = StringField('Flight Number', [validators.Length(min=1, max=25),validators.InputRequired()])
     submit = SubmitField('Submit')
 
-@app.route('/login/airline_staff_dashboard/passenger_list/user/<username>', methods=['GET','POST'])
-def passenger_list(username):
+@app.route('/login/airline_staff_dashboard/passenger_list/', methods=['GET','POST'])
+def passenger_list():
     print(session.get('permission'))
     if not session.get('permission') == 'admin' and not session.get('permission') == 'staff':
             return "Unauthorized", 403
@@ -320,7 +320,7 @@ def passenger_list(username):
         print(passengers)
         conn.commit()
         cursor.close()
-        return render_template('airline-staff/passenger-list.html',search_form=search_form,username=username, passengers=passengers)
+        return render_template('airline-staff/passenger-list.html',search_form=search_form, passengers=passengers)
     else:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""SELECT * FROM ticket WHERE airline_name = %s""",
@@ -328,7 +328,7 @@ def passenger_list(username):
         passengers = cursor.fetchall()
         conn.commit()
         cursor.close()
-        return render_template('airline-staff/passenger-list.html',search_form=search_form,username=username, passengers=passengers)
+        return render_template('airline-staff/passenger-list.html',search_form=search_form, passengers=passengers)
 
 
 
@@ -339,24 +339,22 @@ class AgentRadioForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
-@app.route('/login/airline_staff_dashboard/agent_actions/user/<username>', methods=['GET', 'POST'])
-def agent_actions(username):
+@app.route('/login/airline_staff_dashboard/agent_actions', methods=['GET', 'POST'])
+def agent_actions():
      
 
     if not session.get('permission') == 'admin':
                 return "Unauthorized", 403
-    if username is None:
-            return "Unauthorized", 403
     form = AgentRadioForm()
     if form.validate_on_submit() and request.method == 'POST':
             print("we are here everyoen")
             if form.action.data == 'view':
-                return redirect(url_for('view_agents',username= username))
+                return redirect(url_for('view_agents'))
             elif form.action.data == 'register':
 
-                return redirect(url_for('register_booking_agent',username= username))
+                return redirect(url_for('register_booking_agent'))
 
-    return render_template('airline-staff/agent-actions.html', form=form,username=username)
+    return render_template('airline-staff/agent-actions.html', form=form)
 
 class BookingAgentRegisterForm(Form):
     
@@ -396,8 +394,8 @@ class BookingAgentRegisterForm(Form):
         :return: The hashed password.
         """
         return generate_password_hash(password)
-@app.route('/login/airline_staff_dashboard/agent_actions/register_booking_agent/user/<username>', methods=['GET','POST'])
-def register_booking_agent(username):
+@app.route('/login/airline_staff_dashboard/agent_actions/register_booking_agent', methods=['GET','POST'])
+def register_booking_agent():
 
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
@@ -430,8 +428,8 @@ def register_booking_agent(username):
     return render_template('booking-agent/booking-agent-reg.html', form=form)
 
 
-@app.route('/login/airline_staff_dashboard/agent_actions/view_agents/user/<username>', methods=['GET', 'POST'])
-def view_agents(username):
+@app.route('/login/airline_staff_dashboard/agent_actions/view_agents', methods=['GET', 'POST'])
+def view_agents():
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
     cursor = conn.cursor(dictionary=True)
@@ -445,7 +443,7 @@ def view_agents(username):
     print(agents)
     conn.commit()
     cursor.close()
-    return render_template('airline-staff/view-agents.html', agents=agents,username=username)
+    return render_template('airline-staff/view-agents.html', agents=agents)
 
 
 
@@ -470,22 +468,20 @@ class AirRadioForm(FlaskForm):
     asset = RadioField('Select Asset:', choices=[('airport','Airport'), ('flight','Flight'), ('airplane','Airplane')], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
-@app.route('/login/airline_staff_dashboard/register_air/user/<username>', methods=['GET', 'POST'])
-def register_air(username):
+@app.route('/login/airline_staff_dashboard/register_air/', methods=['GET', 'POST'])
+def register_air():
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
-    if username is None:
-        return "Unauthorized", 403
     air_form = AirRadioForm()
     if air_form.validate_on_submit() and request.method == 'POST':
         print("we are here everyoen")
         if air_form.asset.data == 'airport':
-            return redirect(url_for('add_airport',username= username))
+            return redirect(url_for('add_airport'))
         elif air_form.asset.data == 'flight':
-            return redirect(url_for('add_flight',username= username))
+            return redirect(url_for('add_flight'))
         elif air_form.asset.data == 'airplane':
-            return redirect(url_for('add_airplane',username= username))
-    return render_template('airline-staff/register-air.html', air_form=air_form,username=username)
+            return redirect(url_for('add_airplane'))
+    return render_template('airline-staff/register-air.html', air_form=air_form)
 
 class AddFlightForm(FlaskForm):
     def __init__(self, *args, **kwargs):
@@ -527,8 +523,9 @@ class AddFlightForm(FlaskForm):
     
     Submit = SubmitField('Submit')
 
-@app.route('/login/airline_staff_dashboard/register_air/add_flight/user/<username>', methods=['GET','POST'])
-def add_flight(username):
+@app.route('/login/airline_staff_dashboard/register_air/add_flight/', methods=['GET','POST'])
+def add_flight():
+    
 
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
@@ -613,7 +610,7 @@ def add_flight(username):
                 return "Flight added successfully!"
         print(form.errors)
 
-    return render_template('airline-staff/add-flight.html', form=form,username=username)
+    return render_template('airline-staff/add-flight.html', form=form)
 
 
 
@@ -627,8 +624,8 @@ class AddAirPlaneForm(FlaskForm):
     airplane_id = StringField('Airplane ID', [validators.Length(min=1, max=25),validators.InputRequired()])
     submit = SubmitField('Submit')
 
-@app.route('/login/airline_staff_dashboard/register_air/add_airplane/user/<username>', methods=['GET', 'POST'])
-def add_airplane(username):
+@app.route('/login/airline_staff_dashboard/register_air/add_airplane', methods=['GET', 'POST'])
+def add_airplane():
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
     form = AddAirPlaneForm(request.form)
@@ -664,8 +661,8 @@ class AddAirPortForm(FlaskForm):
     city = StringField('City', [validators.Length(min=1, max=25),validators.InputRequired()])
     submit = SubmitField('Submit')
     
-@app.route('/login/airline_staff_dashboard/register_air/add_airport/user/<username>', methods=['GET', 'POST'])
-def add_airport(username):
+@app.route('/login/airline_staff_dashboard/register_air/add_airport/', methods=['GET', 'POST'])
+def add_airport():
     form = AddAirPortForm(request.form)
     if not session.get('permission') == 'admin':
             return "Unauthorized", 403
