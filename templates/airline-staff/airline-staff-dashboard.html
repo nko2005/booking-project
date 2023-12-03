@@ -13,11 +13,11 @@
     <nav>
         <ul>
             <li><a href="#">Home</a></li>
-            <li><a href="{{ url_for('view_flights',username=username) }}">Flights</a></li>
-            <li><a href="{{url_for('passenger_list',username=username)}}">Passengers</a></li>
-            <li><a href="{{url_for('register_air',username=username)}}">insert</a></li>
+            <li><a href="{{ url_for('view_flights') }}">Flights</a></li>
+            <li><a href="{{url_for('passenger_list')}}">Passengers</a></li>
+            <li><a href="{{url_for('register_air')}}">insert</a></li>
             <li><a href="#">Reports</a></li>
-            <li><a href="{{url_for('agent_actions',username=username)}}">Booking Agents</a></li>
+            <li><a href="{{url_for('agent_actions')}}">Booking Agents</a></li>
             <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
     </nav>
