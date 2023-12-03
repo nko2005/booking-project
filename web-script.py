@@ -982,6 +982,7 @@ def purchase_flight_ticket(flight_num):
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
+    print(flight_num)
     form = PurchaseTicket()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM flight WHERE flight_number = %s", (flight_num,))
@@ -991,7 +992,7 @@ def purchase_flight_ticket(flight_num):
     if request.method == 'POST':
         return 'Ticket purchased Successfully!'
     
-    return render_template('customer/purchase-flight-ticket.html', username=username, form=form, flight=flight_num)
+    return render_template('customer/purchase-flight-ticket.html', username=username, form=form, flight=flight)
     
     
 # New route for tracking spending
@@ -1008,7 +1009,7 @@ def track_spending():
 
 
 @app.route('/login/customer_view_flights')
-def customer_view_flights(ticket_flights):
+def customer_view_flights():
         username = session.get('username')
 
         # Check if the user has the necessary permission
@@ -1021,27 +1022,16 @@ def customer_view_flights(ticket_flights):
         #print(datetime.now().date())
         #return render_template('customer/customer-view-flights.html', form = form,username = username)
        
-        if form.validate_on_submit() and request.method == 'POST':
-           
-                    cursor = conn.cursor(dictionary=True)
-                    cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customerWHERE Customer_Email=%s)",(username,))
+        
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket WHERE Customer_Email=%s)",(username,))
                     
-                    ticket_flights = cursor.fetchall()
-                    conn.commit()
-                    cursor.close()
+        ticket_flights = cursor.fetchall()
+        conn.commit()
+        cursor.close()
                 
-                    return render_template('customer/customer-view-flights.html', ticket_flights=ticket_flights,form = form,username = username)
-        else:
-                
-               
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer WHERE Customer_Email=%s)",(username,))
-                ticket_flights = cursor.fetchall()
-                conn.commit()
-                cursor.close()
-                return render_template('customer/customer-view-flights.html', ticket_flights=ticket_flights,form = form,username = username)
-            
-
+        return render_template('customer/customer-view-flights.html', ticket_flights=ticket_flights,form = form,username = username)
+        
 
 
 

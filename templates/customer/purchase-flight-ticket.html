@@ -15,7 +15,7 @@
         </div>
     </div>
     <div id = "title" align="center">
-        <h1>Ticket Purchased</h1>
+        <h1>MFlight Purchased</h1>
     </div>
     <div id = "content" align="center">
         <h2>Flight Details</h2>
@@ -30,7 +30,9 @@
         <p>Airplane ID: {{ flight.Airplane_ID }}</p>
         <p>Price: {{ flight.Price }}$</p>
         
-        
+        <form method="POST" action="{{ url_for('change_flight_status', username=username, flight_num=flight.Flight_number) }}">
+            
+            <input type="submit" value="Purchase">
 
     
 </body>
