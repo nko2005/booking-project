@@ -888,7 +888,7 @@ def search_flights():
             AND arrival_date >= %s
             AND Departure_Airport = %s
             AND Arrival_Airport = %s
-        """, (session.get('airline'), start_date, end_date, end_date, form.depart_from.data, form.arrive_at.data))
+        """)
 
         flights = cursor.fetchall()
         conn.commit()
@@ -907,7 +907,7 @@ def search_flights():
             WHERE airline_name = %s
             AND departure_date BETWEEN %s AND %s
             AND Status = %s
-        """, (session.get('airline'), start_date, end_date, status))
+        """)
 
         flights = cursor.fetchall()
         conn.commit()
@@ -963,32 +963,23 @@ def customer_view_flights():
        
         if form.validate_on_submit() and request.method == 'POST':
            
-                if form.start_date.data > form.end_date.data:
-                    return "Invalid date range"
-                else:
-                    start_date = form.start_date.data
-                    end_date = form.end_date.data
-                    
                     cursor = conn.cursor(dictionary=True)
-                    cursor.execute("(SELECT ticket_ID, Flight_number, Airline_name, Arrival_Airport, Arrival_City, Arrival_date, Departure_Airport, Departure_City, Departure_date, Departure_hr, Departure_min, Arrival_hr, Arrival_min, Airplane_ID, Price, Status FROM `flight NATURAL JOIN ticket`NATURAL JOIN Customer where Customer_Email='username')", (session.get('airline'), start_date,end_date,end_date,form.depart_from.data,form.arrive_at.data))
+                    cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer)")
                     
-                    flights = cursor.fetchall()
+                    ticket_flights = cursor.fetchall()
                     conn.commit()
                     cursor.close()
                 
-                    return render_template('customer/customer-view-flights.html', flights=flights,form = form,username = username)
+                    return render_template('customer/customer-view-flights.html', ticket_flights=ticket_flights,form = form,username = username)
         else:
                 
-                start_date = datetime.now().date()
-                end_date = start_date + timedelta(days=30)
-                status = 'upcoming'
-                    
+               
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("SELECT * FROM flight WHERE airline_name = %s AND departure_date BETWEEN %s AND %s AND Status = %s", (session.get('airline'), start_date, end_date,status))
-                flights = cursor.fetchall()
+                cursor.execute("(SELECT * FROM flight NATURAL JOIN ticket NATURAL JOIN customer)")
+                ticket_flights = cursor.fetchall()
                 conn.commit()
                 cursor.close()
-                return render_template('customer/customer-view-flights.html', flights=flights,form = form,username = username)
+                return render_template('customer/customer-view-flights.html', ticket_flights=ticket_flights,form = form,username = username)
             
 
 
