@@ -949,13 +949,13 @@ def search_flights():
     return render_template('customer/search-flights.html', flights=flights, form=form, username=username)
         
 @app.route('/login/purchase_flight_ticket', methods=['GET', 'POST'])
-def purchase_flight_ticket():
+def purchase_flight_ticket(flight_num):
     # Check if the user has the necessary permission
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
     
-    return render_template('customer/purchase-flight-ticket.html', username=username)
+    return render_template('customer/purchase-flight-ticket.html', username=username, flight=flight_num)
     '''if form.validate_on_submit() and request.method == 'POST':
         start_date = form.start_date.data
         end_date = form.end_date.data
