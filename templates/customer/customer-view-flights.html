@@ -23,6 +23,7 @@
             <th>Departure Time</th>
             <th>Arrival Time</th>
             <th>Price</th>
+            <th>Purchase Date</th>
             <th>Status</th>
             
         </tr>
@@ -37,6 +38,7 @@
             <td>{{ ticket_flight.Departure_hr }}:{{ ticket_flight.Departure_min }}</td>
             <td>{{ ticket_flight.Arrival_hr }}:{{ ticket_flight.Arrival_min }}</td>
             <td>{{ ticket_flight.Price }}</td>
+            <td>{{ ticket_flight.Purchase_date }}</td>
             <td class="{{ 'text-green' if ticket_flight.Status == 'Upcoming' else 'text-red' if ticket_flight.Status == 'Cancelled' else 'text-yellow' if ticket_flight.Status == 'Delayed' else '' }}">{{ ticket_flight.Status }}</td>
             
         </tr>

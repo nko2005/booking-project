@@ -15,14 +15,15 @@ from wtforms.validators import DataRequired, Email, Length, InputRequired, Regex
 from datetime import datetime, timedelta
 import ast
 import uuid
+#import matplotlib.pyplot as plt
 # Initialize the app from Flask
 app = Flask(__name__)#forms for flask
-
+#
 #Configure MySQL
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3307)
+                               database='booking', port = 3306)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
@@ -174,7 +175,7 @@ def customer_dashboard():
     if session.get('permission') != 'user':
         return "Unauthorized", 403
     
-
+    
     return render_template('customer/customer-dashboard.html',username=username)
 
 @app.route('/login/booking_agent_dashboard', methods=['GET', 'POST'])
@@ -475,7 +476,6 @@ def register_air():
             return "Unauthorized", 403
     air_form = AirRadioForm()
     if air_form.validate_on_submit() and request.method == 'POST':
-        print("we are here everyoen")
         if air_form.asset.data == 'airport':
             return redirect(url_for('add_airport'))
         elif air_form.asset.data == 'flight':
@@ -608,7 +608,7 @@ def add_flight():
                 )
                 conn.commit()
                 cursor.close()
-                return "Flight added successfully!"
+                return redirect(url_for('airline_staff_dashboard'))
         print(form.errors)
 
     return render_template('airline-staff/add-flight.html', form=form)
@@ -993,6 +993,46 @@ def track_spending():
     username = session.get('username')
     if session.get('permission') != 'user':
         return "Unauthorized", 403
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+    SELECT 
+        DATE_FORMAT(purchase_date, '%Y-%m') AS month, 
+        SUM(Price) AS total_spent
+    FROM 
+        ticket
+    WHERE 
+        Customer_Email = %s
+    GROUP BY 
+        month
+    ORDER BY 
+        month
+    """, (username,))
+
+    spendings = cursor.fetchall()
+    months = [row['month'] for row in spendings]
+    totals = [row['total_spent'] for row in spendings]
+    
+    plt.bar(months, totals)
+    plt.xlabel('Month')
+    plt.ylabel('Total Spent')
+    plt.title('Monthly Spendings')
+    plt.show()
+    
+
+    plt.bar(months, totals)
+    plt.xlabel('Month')
+    plt.ylabel('Total Spent')
+    plt.title('Monthly Spendings')
+    plt.savefig('static/images/spendings.png')
+
+    return render_template('spendings.html', image_file='images/spendings.png')
+
+    
+
+
+
+
+
     
     return render_template('customer/track-spending.html', username=username)
 
