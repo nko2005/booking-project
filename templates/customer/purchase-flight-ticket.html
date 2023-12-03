@@ -31,7 +31,7 @@
         <p>Price: {{ flight.Price }}$</p>
         <p>Status: {{ flight.Status }}</p>
         
-        <form method="POST" action="{{ url_for('change_flight_status', username=username, flight_num=flight.Flight_number) }}">
+        <form method="POST" action="{{ url_for('purchase_flight_ticket', username=username, flight_num=flight.Flight_number) }}">
             {{ form.csrf_token }}
             {{ form.hidden_tag() }}
             <label for="status">Status:</label>
