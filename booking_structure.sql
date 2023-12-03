@@ -85,6 +85,7 @@ create table Ticket(
     Flight_Number        varchar(8) not null,
     Customer_Email       varchar(25) not null,
     Booking_Agent_Email  varchar(25),
+    Purchase_date        DATE not null,
     foreign key(Customer_Email) references Customer(Email),
     foreign key(Booking_Agent_Email) references Booking_Agent(Email),
     foreign key(Flight_Number) references Flight(Flight_number),

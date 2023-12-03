@@ -14,6 +14,7 @@ from werkzeug.security import check_password_hash
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
 from datetime import datetime, timedelta
 import ast
+import uuid
 # Initialize the app from Flask
 app = Flask(__name__)#forms for flask
 
@@ -21,7 +22,7 @@ app = Flask(__name__)#forms for flask
 conn = mysql.connector.connect(host='localhost',
                                user='root',
                                password ="",
-                               database='booking', port = 3306)
+                               database='booking', port = 3307)
 # Define a form for login
 class LoginForm(Form):
     username = StringField('Username', [validators.Optional(),validators.Length(min=4, max=25)])
