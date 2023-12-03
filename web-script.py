@@ -56,28 +56,30 @@ def login():
     if request.method == 'POST' and form.validate():
         print(form.email.data)
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""SELECT username,password,'airline_staff' as user_type FROM airline_staff WHERE username = %s""",(form.username.data,))
-        user = cursor.fetchone()#receive from database
-        if user is None:
-            cursor.execute("""SELECT email,password,'customer' as user_type FROM customer WHERE email = %s""",(form.email.data,))
+        user = None
+        if form.username.data:
+            cursor.execute("SELECT username,password,'airline_staff' as user_type FROM airline_staff WHERE username = %s", (form.username.data,))
             user = cursor.fetchone()
-        if user is None:
-         #receive from database
-            cursor.execute("""SELECT booking_agent_id,password, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s """,(form.agentID.data,))
-            user = cursor.fetchone()
+            session['username'] = form.username.data
 
-        print(user)  # Print the user information
+        if not user and form.email.data:
+            cursor.execute("SELECT Email,password,'customer' as user_type FROM customer WHERE Email = %s", (form.email.data,))
+            user = cursor.fetchone()
+            session['username'] = form.email.data
+
+        if not user and form.agentID.data:
+            print(form.agentID.data)
+            cursor.execute("SELECT Email,booking_agent_id,password, 'booking_agent' as user_type FROM booking_agent WHERE booking_agent_id = %s", (form.agentID.data,))
+            user = cursor.fetchone()
+            session['username'] = form.agentID.data
+            
+
+        print("found agent",user)  # Print the user information
         # Check if the user exists and the password is correct
         conn.commit()
         cursor.close()
-        if user and ('username' in user or 'email' in user or "booking_agent_id" in user ) and form.check_password(user['password']):
+        if user and form.check_password(user['password']):
             # If the user exists and the password is correct, store the username in a session
-            if form.username.data is not None:
-              session['username'] = form.username.data
-            elif form.email.data is not None:
-                session['username'] = form.email.data
-            elif form.agentID.data is not None:
-                session['username'] = form.agentID.data
             session['user_type'] = user['user_type']
             
             if user['user_type'] == 'airline_staff':
@@ -107,12 +109,15 @@ def login():
 
             elif user['user_type'] == 'booking_agent':
             # Serve the booking agent dashboard
+                print("booking agent stuff",session['username'])
                 cursor = conn.cursor(dictionary=True)
-                cursor.execute("""(SELECT airline_name, permission FROM booking_agent WHERE username = %s) """,
-                (session['username']))
+                cursor.execute("""SELECT airline_name, Email FROM booking_agent WHERE Booking_agent_ID = %s """,
+                (session['username'],))
                 userinfo = cursor.fetchone()
+                print(userinfo)
                 session["airline"]= userinfo['airline_name']
                 session["permission"] = "user"
+                session["email"] = userinfo['Email']
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('booking_agent_dashboard'))
@@ -150,9 +155,9 @@ def customer_dashboard():
 @app.route('/login/booking_agent_dashboard', methods=['GET', 'POST'])
 def booking_agent_dashboard():
     # Add your code here to handle the airline staff dashboard functionality
-    username = session.get('username')
+    email = session.get('email')
 
-    return render_template('booking-agent/booking-agent-dashboard.html', username=username)
+    return render_template('booking-agent/booking-agent-dashboard.html', email=email)
 
 class ViewFlightsForm(FlaskForm):
     def __init__(self, *args, **kwargs):
@@ -255,7 +260,7 @@ def change_flight_status(flight_num):
         flight = cursor.fetchone()
         print(flight)
         # Handle the form submission to change the flight status
-        if request.method == 'POST':
+        if request.method == 'POST' and form.validate_on_submit():
             # Process the form data and update the flight status
             # ...
             new_status = form.status.data
