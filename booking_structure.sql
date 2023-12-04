@@ -18,6 +18,7 @@ create table Airline_Staff(
 create table Airplane(
     Airplane_ID  varchar(15) not null,
     Airline_name varchar(20),
+    Seats       numeric(3) not null,
     primary key (Airplane_ID),
     foreign key (Airline_Name) references Airline(Airline_Name)
 );
@@ -47,6 +48,7 @@ create table Flight(
     Airplane_ID        varchar(15),
     Price              DECIMAL(10, 2),
     Status             ENUM('Upcoming', 'Cancelled', 'Delayed', 'in-progress'),
+    Seats_Left        numeric(3), 
     Primary Key (Flight_number),
     foreign key (Airline_Name) references Airline(Airline_Name),
     foreign key (Arrival_Airport) references Airport(Airport_name),
