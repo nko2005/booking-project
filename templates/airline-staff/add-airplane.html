@@ -26,6 +26,12 @@
             {% for error in form.airplane_id.errors %}
             <span class="error">{{ error }}</span>
             {% endfor %}
+
+            <input type="text" name="Seat_capacity" placeholder="Enter seat capacity">
+            {% for error in form.Seat_capacity.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+            
             <div id="input-container" align="center">
                 <input type="submit" value="Submit">
             </div>

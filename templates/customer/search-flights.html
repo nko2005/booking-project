@@ -50,6 +50,7 @@
             <th>Arrival Time</th>
             <th>Price</th>
             <th>Status</th>
+            <th>Seats Left</th>
             <th>Purchase</th>
         </tr>
         {% for flight in flights %}
@@ -64,6 +65,7 @@
             <td>{{ flight.Arrival_hr }}:{{ flight.Arrival_min }}</td>
             <td>{{ flight.Price }}</td>
             <td class="{{ 'text-green' if flight.Status == 'Upcoming' else 'text-red' if flight.Status == 'Cancelled' else 'text-yellow' if flight.Status == 'Delayed' else '' }}">{{ flight.Status }}</td>
+            <td>{{flight.Seats_Left }}</td>
             <td><a href="{{url_for('purchase_flight_ticket',flight_num=flight.Flight_number)}}">Purchase</a></td>
         </tr>
         {% endfor %}

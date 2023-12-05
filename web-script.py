@@ -8,7 +8,7 @@ This script is a Flask web application that handles user login functionality.
 from flask import Flask, render_template, request, url_for, redirect, session
 from flask_wtf import FlaskForm 
 import mysql.connector 
-from wtforms import DateField, DateTimeField, Form, RadioField, StringField, PasswordField, SubmitField, validators, SelectField
+from wtforms import DateField, DateTimeField, Form, RadioField, StringField, PasswordField, SubmitField, validators, SelectField, IntegerField
 from werkzeug.security import generate_password_hash 
 from werkzeug.security import check_password_hash 
 from wtforms.validators import DataRequired, Email, Length, InputRequired, Regexp, Optional
@@ -682,6 +682,7 @@ def add_flight():
 class AddAirPlaneForm(FlaskForm):
 
     airplane_id = StringField('Airplane ID', [validators.Length(min=1, max=25),validators.InputRequired()])
+    Seat_capacity = IntegerField('Seat Capacity', [validators.NumberRange(min=1, max=25), validators.InputRequired()])
     submit = SubmitField('Submit')
 
 @app.route('/login/airline_staff_dashboard/register_air/add_airplane', methods=['GET', 'POST'])
@@ -700,10 +701,11 @@ def add_airplane():
             return "Airplane already exists"
         else:
             cursor.execute(
-                "INSERT INTO airplane(airplane_id,airline_name) VALUES (%s, %s)",
+                "INSERT INTO airplane(airplane_id,airline_name,Seats) VALUES (%s, %s,%s)",
                 (
                     form.airplane_id.data,
-                    session.get('airline')
+                    session.get('airline'),
+                    form.Seat_capacity.data
                 )
             )
             conn.commit()
@@ -1031,14 +1033,21 @@ def purchase_flight_ticket(flight_num):
 
     flight = cursor.fetchone()
     print(flight)
+    cursor.execute("SELECT Seats FROM Airplane WHERE Airplane_ID = %s ", (flight["Airplane_ID"],))
+    seats = cursor.fetchone()
         # Handle the form submission to change the flight status
     
     if request.method == 'POST':
         ticket_id=str(uuid.uuid1())
+        if flight["Seats_Left"]==0:
+            return "No seats left"
+        
 
-        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date) VALUES (%s,%s,%s,%s, %s, %s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],username, None, datetime.now().date()))
+        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date,Seat_Number) VALUES (%s,%s,%s,%s,%s,%s,%s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],username, None, datetime.now().date(), seats["Seats"]-flight["Seats_Left"]+1))
+        cursor.execute("UPDATE flight SET Seats_Left = Seats_Left - 1 WHERE flight_number = %s", (flight_num,))
         conn.commit()
         cursor.close()
+
         print('Ticket Purchased Successfully!')
         return redirect(url_for('customer_dashboard'))
     
@@ -1397,6 +1406,8 @@ def booking_agent_purchase_flights(flight_num):
 
     flight = cursor.fetchone()
     print(flight)
+    cursor.execute("SELECT Seats FROM Airplane WHERE Airplane_ID = %s ", (flight["Airplane_ID"],))
+    seats = cursor.fetchone()
         # Handle the form submission to change the flight status
     
     if request.method == 'POST' and form.validate():
@@ -1406,8 +1417,11 @@ def booking_agent_purchase_flights(flight_num):
         print(existing_customer)
         if not existing_customer['Email']:
              return "Invalid Customer Email"
+        
+        if flight["Seats_Left"]==0:
+            return "No seats left"
 
-        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date) VALUES (%s,%s,%s,%s, %s, %s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],existing_customer['Email'],session.get('email'), datetime.now().date()))
+        cursor.execute("INSERT INTO ticket(Ticket_ID, Airline_name, Flight_Number, Customer_Email, Booking_Agent_Email, Purchase_date,Seat_Number) VALUES (%s,%s,%s,%s, %s, %s)",(ticket_id, flight["Airline_name"], flight["Flight_number"],existing_customer['Email'],session.get('email'), datetime.now().date(), seats["Seats"]-flight["Seats_Left"]+1))
         conn.commit()
         cursor.close()
         print('Ticket Purchased Successfully!')
