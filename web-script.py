@@ -628,6 +628,8 @@ def add_flight():
 
                 dep_hour, dep_minute = map(int, form.departure_date_time.data.strftime('%H:%M').split(':'))
                 arr_hour, arr_minute = map(int, form.arrival_date_time.data.strftime('%H:%M').split(':'))
+                cursor.execute("SELECT Seats FROM airplane WHERE Airplane_ID = %s", (form.airplane_id.data,))
+                seats = cursor.fetchone()
 
                 cursor.execute(
                     """INSERT INTO flight(
@@ -645,8 +647,9 @@ def add_flight():
                     Arrival_min,
                     Airplane_ID,
                     price,
-                    status
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,"Upcoming")
+                    status,
+                    Seats_Left
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,"Upcoming",%s)
                     """,
                     (
                         form.Flight_number.data,
@@ -662,7 +665,9 @@ def add_flight():
                         arr_hour,
                         arr_minute,
                         form.airplane_id.data,
-                        form.price.data
+                        form.price.data,
+                        seats['Seats']
+
                     )
                 )
                 conn.commit()
