@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2023 at 09:16 PM
+-- Generation Time: Dec 08, 2023 at 09:24 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -25,7 +25,7 @@ SET time_zone = "+00:00";
 
 --
 -- Table structure for table `airline`
---z
+--
 
 CREATE TABLE `airline` (
   `Airline_name` varchar(20) NOT NULL
@@ -72,19 +72,18 @@ INSERT INTO `airline_staff` (`id`, `Airline_name`, `Username`, `first_name`, `la
 
 CREATE TABLE `airplane` (
   `Airplane_ID` varchar(15) NOT NULL,
-  `Airline_name` varchar(20) DEFAULT NULL
+  `Airline_name` varchar(20) DEFAULT NULL,
+  `Seats` decimal(3,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `airplane`
 --
 
-INSERT INTO `airplane` (`Airplane_ID`, `Airline_name`) VALUES
-('123321', 'Shanghai Global'),
-('454033', 'Shanghai Global'),
-('454034', 'Shanghai Global'),
-('454035', 'Shanghai Global'),
-('454036', 'Shanghai Global');
+INSERT INTO `airplane` (`Airplane_ID`, `Airline_name`, `Seats`) VALUES
+('454034', 'Shanghai Global', 2),
+('454035', 'Shanghai Global', 2),
+('454036', 'Shanghai Global', 2);
 
 -- --------------------------------------------------------
 
@@ -108,6 +107,7 @@ INSERT INTO `airport` (`Airport_name`, `City`) VALUES
 ('LAX', 'Los Angeles'),
 ('ORD', 'Chicago'),
 ('PVG', 'Shanghai'),
+('PXI', 'Shanghai'),
 ('SEA', 'Seattle');
 
 -- --------------------------------------------------------
@@ -159,7 +159,8 @@ CREATE TABLE `customer` (
 INSERT INTO `customer` (`id`, `first_name`, `last_name`, `Email`, `Password`, `Building`, `Building_no`, `Street`, `City`, `Passport_expiration`, `phone_number`) VALUES
 (1, 'John', 'Trent', 'JohnTrent@gmail.com', 'hashed_password3', 'Building 1', '1', 'Street 1', 'City 1', '2023-01-01', '1234567890'),
 (5, 'Khaled', 'Alotaishan', 'otaishan@yahoo.com', 'scrypt:32768:8:1$7T6dmQC1MVAcO2Mr$0115c3aa63d6a64097e1a7999fcf34245a9d25f78c33e3f668c4ab2177da2a1ed2bcf665b6c0392ce17e4f576a638eb7b951c35989876cf23542731894eb224f', NULL, '33', '8183, Ab', 'Dammam', '2023-12-01', '15618272538'),
-(6, 'Khaled', 'Alotaishan', 'trent@gmail.com', 'scrypt:32768:8:1$EUJk2mLUoLoCGgGa$9ec22d93588ddf5e8a67848b4d6956ea9f6a0cd1f889c72bd68437f9cc6b950f16c0418907b023a3a135b8461a66562ea928b4e3e2f227323fd0465860dcabca', NULL, '', '8183, Ab', 'Dammam', '2023-12-01', '');
+(6, 'Nawaf', 'Alotaishan', 'trent@gmail.com', 'scrypt:32768:8:1$EUJk2mLUoLoCGgGa$9ec22d93588ddf5e8a67848b4d6956ea9f6a0cd1f889c72bd68437f9cc6b950f16c0418907b023a3a135b8461a66562ea928b4e3e2f227323fd0465860dcabca', NULL, '', '8183, Ab', 'Dammam', '2023-12-01', ''),
+(7, 'Weaver ', 'Gregory', 'Weaver115@gmail.com', 'scrypt:32768:8:1$lYRmpqL1rG1uQewO$c18472515fbde93caeb3f669130bf00dc0678f0f8a9e000a9674bf8ea48903a745607ec3713bb66412e4ea44d6a9163799d969f916291b0c88313670e2498d17', NULL, '115', '6th street ', 'Berlin', '2023-12-27', '');
 
 -- --------------------------------------------------------
 
@@ -182,21 +183,18 @@ CREATE TABLE `flight` (
   `Arrival_min` decimal(2,0) DEFAULT NULL CHECK (`Arrival_min` >= 0 and `Arrival_min` < 60),
   `Airplane_ID` varchar(15) DEFAULT NULL,
   `Price` decimal(10,2) DEFAULT NULL,
-  `Status` enum('Upcoming','Cancelled','Delayed','in-progress') DEFAULT NULL
+  `Status` enum('Upcoming','Cancelled','Delayed','in-progress') DEFAULT NULL,
+  `Seats_Left` decimal(3,0) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `flight`
 --
 
-INSERT INTO `flight` (`Flight_number`, `Airline_name`, `Arrival_Airport`, `Arrival_City`, `Arrival_date`, `Departure_Airport`, `Departure_City`, `Departure_date`, `Departure_hr`, `Departure_min`, `Arrival_hr`, `Arrival_min`, `Airplane_ID`, `Price`, `Status`) VALUES
-('3443', 'Shanghai Global', 'JFK', 'New York', '2023-12-02', 'PVG', 'Shanghai', '2023-12-01', 19, 30, 2, 30, '454033', 500.00, 'Upcoming'),
-('3444', 'Shanghai Global', 'LAX', 'Los Angeles', '2023-12-02', 'PVG', 'Shanghai', '2023-12-01', 20, 30, 3, 30, '454034', 600.00, 'Upcoming'),
-('3445', 'Shanghai Global', 'ORD', 'Chicago', '2023-12-03', 'PVG', 'Shanghai', '2023-12-02', 21, 30, 4, 30, '454035', 700.00, 'Upcoming'),
-('3446', 'Shanghai Global', 'SEA', 'Seattle', '2023-12-04', 'PVG', 'Shanghai', '2023-12-03', 22, 30, 5, 30, '454036', 800.00, 'Delayed'),
-('34663', 'Shanghai Global', 'ABC', 'Bejing', '2023-12-07', 'PVG', 'Shanghai', '2023-12-06', 2, 21, 2, 21, '454033', 800.00, NULL),
-('36663', 'Shanghai Global', 'LAX', 'Los Angeles', '2023-12-04', 'PVG', 'Shanghai', '2023-12-03', 2, 21, 2, 21, '123321', 80.00, NULL),
-('36663555', 'Shanghai Global', 'JFK', 'New York', '2023-12-07', 'PVG', 'Shanghai', '2023-12-05', 2, 32, 2, 32, '454035', 44000.00, 'Delayed');
+INSERT INTO `flight` (`Flight_number`, `Airline_name`, `Arrival_Airport`, `Arrival_City`, `Arrival_date`, `Departure_Airport`, `Departure_City`, `Departure_date`, `Departure_hr`, `Departure_min`, `Arrival_hr`, `Arrival_min`, `Airplane_ID`, `Price`, `Status`, `Seats_Left`) VALUES
+('3444', 'Shanghai Global', 'LAX', 'Los Angeles', '2023-12-02', 'PVG', 'Shanghai', '2023-12-01', 20, 30, 3, 30, '454034', 600.00, 'Upcoming', 0),
+('3445', 'Shanghai Global', 'ORD', 'Chicago', '2023-12-03', 'PVG', 'Shanghai', '2023-12-02', 21, 30, 4, 30, '454035', 700.00, 'Upcoming', 0),
+('3446', 'Shanghai Global', 'SEA', 'Seattle', '2023-12-04', 'PVG', 'Shanghai', '2023-12-03', 22, 30, 5, 30, '454036', 800.00, 'Upcoming', 2);
 
 -- --------------------------------------------------------
 
@@ -211,17 +209,19 @@ CREATE TABLE `ticket` (
   `Flight_Number` varchar(8) NOT NULL,
   `Customer_Email` varchar(25) NOT NULL,
   `Booking_Agent_Email` varchar(25) DEFAULT NULL,
-  `Purchase_date` date NOT NULL
+  `Purchase_date` date NOT NULL,
+  `Seat_Number` decimal(3,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `ticket`
 --
 
-INSERT INTO `ticket` (`id`, `Ticket_ID`, `Airline_name`, `Flight_Number`, `Customer_Email`, `Booking_Agent_Email`, `Purchase_date`) VALUES
-(1, '04259eed', 'Shanghai Global', '36663', 'trent@gmail.com', NULL, '2023-12-03'),
-(2, '0c3662a5', 'Shanghai Global', '3446', 'trent@gmail.com', NULL, '2023-12-03'),
-(3, '62b95272', 'Shanghai Global', '3444', 'trent@gmail.com', 'vicktor@gmail.com', '2023-12-04');
+INSERT INTO `ticket` (`id`, `Ticket_ID`, `Airline_name`, `Flight_Number`, `Customer_Email`, `Booking_Agent_Email`, `Purchase_date`, `Seat_Number`) VALUES
+(1, '2dba736b', 'Shanghai Global', '3444', 'trent@gmail.com', NULL, '2023-12-06', 1),
+(2, '397d9f95', 'Shanghai Global', '3444', 'trent@gmail.com', NULL, '2023-12-06', 2),
+(3, 'b110e58a', 'Shanghai Global', '3445', 'trent@gmail.com', NULL, '2023-12-06', 1),
+(4, 'c1b7fa78', 'Shanghai Global', '3445', 'trent@gmail.com', NULL, '2023-12-06', 2);
 
 --
 -- Indexes for dumped tables
@@ -310,13 +310,13 @@ ALTER TABLE `booking_agent`
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `ticket`
 --
 ALTER TABLE `ticket`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
